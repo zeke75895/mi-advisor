@@ -46,6 +46,24 @@ curl localhost:8080/health   # {"status":"ok"}
 
 Needs Postgres running. Connection settings come from `DATABASE_URL`,
 `DATABASE_USERNAME`, `DATABASE_PASSWORD` and default to the docker-compose values.
+Set `JWT_SECRET` (32+ bytes) in any deployed environment. Locally, a random key is
+generated if it's unset, so tokens stop working after a restart.
+
+All `/api/**` routes except auth need `Authorization: Bearer <token>`. Errors are
+returned as RFC 7807 problem JSON (validation errors include an `errors` map).
+
+| Method & path | Purpose |
+|---|---|
+| `POST /api/auth/register`, `POST /api/auth/login` | Returns a JWT |
+| `GET/POST /api/courses` | List / create the user's courses |
+| `GET/POST /api/courses/{id}/items` | Graded items (category, weight % of final grade, points, due date) |
+| `POST /api/items/{id}/rating` | Self-rating 1-10 for an item (latest one counts) |
+| `POST /api/courses/{id}/predict` | Sends study-habit features to the ML service, stores a `RiskScore`. `midtermScore` can be omitted if the course has a graded exam named "Midterm" |
+| `GET /api/courses/{id}/recommendation` | Stay/withdraw recommendation from model risk + grade projection + self-ratings |
+
+```bash
+mvn test   # unit + integration tests (H2 in memory, ML service mocked)
+```
 
 ### 3. ML service — http://localhost:8000
 
