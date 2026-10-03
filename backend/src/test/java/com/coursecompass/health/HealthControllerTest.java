@@ -10,7 +10,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest
+// Inline properties beat environment variables, so a developer's real GEMINI_API_KEY or
+// ML_SERVICE_URL can't leak into these tests
+@SpringBootTest(properties = {"gemini.api-key=", "ml.service.url=http://localhost:0"})
 @AutoConfigureMockMvc
 class HealthControllerTest {
 

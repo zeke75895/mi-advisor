@@ -30,7 +30,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-@SpringBootTest
+// Inline properties beat environment variables, so a developer's real GEMINI_API_KEY or
+// ML_SERVICE_URL can't leak into these tests
+@SpringBootTest(properties = {"gemini.api-key=", "ml.service.url=http://localhost:0"})
 @AutoConfigureMockMvc
 class ApiFlowIntegrationTest {
 
