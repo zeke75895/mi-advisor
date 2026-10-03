@@ -19,6 +19,16 @@ public final class RecommendationDtos {
             int lowRatings,
             int ratedItems) {}
 
+    /** Grade projection on its own; available before any risk prediction exists. */
+    public record ProjectionResponse(
+            Long courseId,
+            Double projectedFinal,
+            Double currentGrade,
+            double remainingWeight,
+            double coveredWeight,
+            int itemCount,
+            int ratedItems) {}
+
     public record RecommendationResponse(
             Long courseId,
             RecommendationType recommendation,

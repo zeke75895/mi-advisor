@@ -89,6 +89,14 @@ class ApiFlowIntegrationTest {
                 .andExpect(jsonPath("$[1].isGraded").value(true))
                 .andExpect(jsonPath("$[2].latestRating").value(3));
 
+        // Projection works before any prediction: (25*55 + 35*30 + 40*70) / 100 = 52.25
+        mvc.perform(get("/api/courses/" + courseId + "/projection").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.projectedFinal").value(52.3))
+                .andExpect(jsonPath("$.remainingWeight").value(0.35))
+                .andExpect(jsonPath("$.itemCount").value(3))
+                .andExpect(jsonPath("$.ratedItems").value(2));
+
         // midtermScore omitted -> filled from the graded "Midterm" item
         postJson("/api/courses/" + courseId + "/predict", token, FEATURES_WITHOUT_MIDTERM)
                 .andExpect(status().isCreated())
@@ -165,6 +173,17 @@ class ApiFlowIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail", containsString("midtermScore")));
         verify(mlClient, never()).predict(any());
+    }
+
+    @Test
+    void projectionOfEmptyCourseHasNullGrades() throws Exception {
+        String token = register(uniqueEmail());
+        long courseId = createCourse(token);
+
+        mvc.perform(get("/api/courses/" + courseId + "/projection").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.projectedFinal").doesNotExist())
+                .andExpect(jsonPath("$.itemCount").value(0));
     }
 
     @Test

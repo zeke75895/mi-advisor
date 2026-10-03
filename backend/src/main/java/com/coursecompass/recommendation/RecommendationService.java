@@ -10,6 +10,7 @@ import com.coursecompass.llm.ExplanationService.ExplanationInput;
 import com.coursecompass.rating.SelfRatingService;
 import com.coursecompass.recommendation.GradeProjector.ItemInput;
 import com.coursecompass.recommendation.GradeProjector.Projection;
+import com.coursecompass.recommendation.RecommendationDtos.ProjectionResponse;
 import com.coursecompass.recommendation.RecommendationDtos.RecommendationResponse;
 import com.coursecompass.recommendation.RecommendationDtos.Signals;
 import com.coursecompass.risk.RiskScore;
@@ -47,6 +48,21 @@ public class RecommendationService {
         this.explanationService = explanationService;
     }
 
+    public ProjectionResponse projection(Long userId, Long courseId) {
+        courseService.getOwned(userId, courseId);
+        List<GradedItem> courseItems = items.findByCourseIdOrderByDueDateAscIdAsc(courseId);
+        Map<Long, Integer> ratings = ratingService.latestRatingsForCourse(courseId);
+        Projection p = project(courseItems, ratings);
+        return new ProjectionResponse(
+                courseId,
+                p.projectedFinal() == null ? null : Math.round(p.projectedFinal() * 10) / 10.0,
+                p.currentGrade() == null ? null : Math.round(p.currentGrade() * 10) / 10.0,
+                round(p.remainingWeight()),
+                round(p.coveredWeight()),
+                courseItems.size(),
+                ratings.size());
+    }
+
     // Not @Transactional: each read runs in its own short transaction so the Gemini call below
     // doesn't hold a database connection open.
     public RecommendationResponse recommend(Long userId, Long courseId) {
@@ -60,9 +76,7 @@ public class RecommendationService {
             throw new ConflictException("Add the course's graded items from the syllabus first.");
         }
         Map<Long, Integer> ratings = ratingService.latestRatingsForCourse(courseId);
-        Projection projection = GradeProjector.project(courseItems.stream()
-                .map(i -> new ItemInput(i.getWeight(), i.isGraded(), i.percentScore(), ratings.get(i.getId())))
-                .toList());
+        Projection projection = project(courseItems, ratings);
         if (projection.projectedFinal() == null) {
             throw new ConflictException("Grade or self-rate at least one item to project a final grade.");
         }
@@ -110,6 +124,12 @@ public class RecommendationService {
                 DISCLAIMER,
                 risk.getModelVersion(),
                 risk.getComputedAt());
+    }
+
+    private static Projection project(List<GradedItem> courseItems, Map<Long, Integer> ratings) {
+        return GradeProjector.project(courseItems.stream()
+                .map(i -> new ItemInput(i.getWeight(), i.isGraded(), i.percentScore(), ratings.get(i.getId())))
+                .toList());
     }
 
     private static double round(double value) {
