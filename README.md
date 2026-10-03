@@ -59,7 +59,14 @@ returned as RFC 7807 problem JSON (validation errors include an `errors` map).
 | `GET/POST /api/courses/{id}/items` | Graded items (category, weight % of final grade, points, due date) |
 | `POST /api/items/{id}/rating` | Self-rating 1-10 for an item (latest one counts) |
 | `POST /api/courses/{id}/predict` | Sends study-habit features to the ML service, stores a `RiskScore`. `midtermScore` can be omitted if the course has a graded exam named "Midterm" |
-| `GET /api/courses/{id}/recommendation` | Stay/withdraw recommendation from model risk + grade projection + self-ratings |
+| `GET /api/courses/{id}/recommendation` | Stay/withdraw recommendation from model risk + grade projection + self-ratings, with a Gemini-polished explanation |
+
+The projected final is the weighted average of each item's actual % (graded) or
+self-rating × 10 (ungraded), using the syllabus weights. If `GEMINI_API_KEY` is set,
+the reasoning bullets are rewritten by Gemini (prompts in
+`backend/src/main/resources/prompts/`) and labeled "AI-generated". The rewrite is
+rejected, and the template text used instead, if it changes the number of bullets or
+adds any number that wasn't in the input. Only aggregate signals are sent to Gemini.
 
 ```bash
 mvn test   # unit + integration tests (H2 in memory, ML service mocked)
