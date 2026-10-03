@@ -9,6 +9,7 @@ import static com.coursecompass.recommendation.RecommendationType.UNCERTAIN;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 /**
  * Combines the model's risk with the grade projection and self-ratings into a stay/withdraw
@@ -20,7 +21,8 @@ import java.util.List;
  *   <li>projected final < 70 AND model predicts at_risk AND 50% or less remains: at least lean_withdraw
  * </ul>
  */
-public final class FusionEngine {
+@Service
+public class FusionService {
 
     static final double PASSING_GRADE = 70.0;
     static final double LOW_RECOVERY_ROOM = 0.30;
@@ -34,8 +36,6 @@ public final class FusionEngine {
     static final double W_GRADE = 0.25;
     static final double W_RECOVERY = 0.20;
     static final double W_DISTRESS = 0.15;
-
-    private FusionEngine() {}
 
     public record Inputs(
             double modelRisk,
@@ -55,7 +55,7 @@ public final class FusionEngine {
             int lowRatings,
             String appliedRule) {}
 
-    public static Result compute(Inputs in) {
+    public Result compute(Inputs in) {
         double gradeSignal = in.projectedFinal() < PASSING_GRADE ? 1.0 : 0.0;
         double recoverySignal = in.remainingWeight() < LOW_RECOVERY_ROOM ? 1.0 : 0.0;
         int lowRatings = (int) in.selfRatings().stream().filter(r -> r <= LOW_RATING).count();
@@ -116,13 +116,10 @@ public final class FusionEngine {
     private static List<String> reasoning(Inputs in, boolean distressed, int lowRatings, String appliedRule) {
         List<String> reasons = new ArrayList<>();
         // The tree's probability isn't calibrated, so describe it as a level rather than a percentage
-        if (in.modelRisk() > 0.7) {
-            reasons.add("The prediction model rates this course as high risk based on your study patterns.");
-        } else if (in.modelRisk() > 0.4) {
-            reasons.add("The prediction model rates this course as moderate risk.");
-        } else {
-            reasons.add("The prediction model rates this course as low risk.");
-        }
+        String level = riskLevel(in.modelRisk());
+        reasons.add("high".equals(level)
+                ? "The prediction model rates this course as high risk based on your study patterns."
+                : "The prediction model rates this course as " + level + " risk.");
 
         long projected = Math.round(in.projectedFinal());
         if (in.projectedFinal() < PASSING_GRADE) {
@@ -152,6 +149,14 @@ public final class FusionEngine {
                     + " together are a withdraw signal.");
         }
         return reasons;
+    }
+
+    /** "high", "moderate" or "low": the tree's probability isn't calibrated, so we only show a level. */
+    public static String riskLevel(double modelRisk) {
+        if (modelRisk > 0.7) {
+            return "high";
+        }
+        return modelRisk > 0.4 ? "moderate" : "low";
     }
 
     private static String headline(RecommendationType rec) {

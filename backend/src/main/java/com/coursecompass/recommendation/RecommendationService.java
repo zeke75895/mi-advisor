@@ -27,16 +27,19 @@ public class RecommendationService {
     private final GradedItemRepository items;
     private final SelfRatingService ratingService;
     private final RiskService riskService;
+    private final FusionService fusion;
 
     public RecommendationService(
             CourseService courseService,
             GradedItemRepository items,
             SelfRatingService ratingService,
-            RiskService riskService) {
+            RiskService riskService,
+            FusionService fusion) {
         this.courseService = courseService;
         this.items = items;
         this.ratingService = ratingService;
         this.riskService = riskService;
+        this.fusion = fusion;
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +62,7 @@ public class RecommendationService {
             throw new ConflictException("Grade or self-rate at least one item to project a final grade.");
         }
 
-        FusionEngine.Result result = FusionEngine.compute(new FusionEngine.Inputs(
+        FusionService.Result result = fusion.compute(new FusionService.Inputs(
                 risk.getRiskProbability(),
                 risk.isAtRisk(),
                 projection.projectedFinal(),
