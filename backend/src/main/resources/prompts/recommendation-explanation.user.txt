@@ -1,0 +1,14 @@
+Recommendation: {{recommendation}} ("{{headline}}")
+
+What we know:
+- Our prediction's risk level for this course: {{risk_level}}
+- Projected final grade: {{projected_final}}
+- Current grade on work graded so far: {{current_grade}}
+- Share of the grade still ahead: {{remaining_pct}}%
+- Items the student rated as low-confidence: {{low_ratings}} of {{rated_items}} rated
+
+Reasoning bullets to rewrite:
+{{reasoning_bullets}}
+
+Suggested actions:
+{{actions}}
