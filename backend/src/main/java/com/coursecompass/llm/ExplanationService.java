@@ -41,14 +41,16 @@ public class ExplanationService {
             "required", List.of("summary", "reasoning"));
 
     private final GeminiClient gemini;
+    private final AiRateLimiter limiter;
     private final ObjectMapper json;
     private final PromptTemplate systemPrompt = PromptTemplate.load("recommendation-explanation.system.txt");
     private final PromptTemplate userPrompt = PromptTemplate.load("recommendation-explanation.user.txt");
     // Same signals -> same prompt -> reuse the rewrite instead of spending Gemini quota on every page load
     private final Map<String, Explanation> cache = new ConcurrentHashMap<>();
 
-    public ExplanationService(GeminiClient gemini, ObjectMapper json) {
+    public ExplanationService(GeminiClient gemini, AiRateLimiter limiter, ObjectMapper json) {
         this.gemini = gemini;
+        this.limiter = limiter;
         this.json = json;
     }
 
@@ -77,6 +79,10 @@ public class ExplanationService {
         Explanation cached = cache.get(prompt);
         if (cached != null) {
             return cached;
+        }
+        if (!limiter.tryAcquireGlobal()) {
+            log.warn("Using template explanation: global AI rate limit reached");
+            return fallback;
         }
         try {
             String raw = gemini.generateJson(systemPrompt.text(), prompt, RESPONSE_SCHEMA);

@@ -27,7 +27,8 @@ class GeminiLiveTest {
                 System.getenv("GEMINI_API_KEY"),
                 model,
                 Duration.ofSeconds(30));
-        ExplanationService service = new ExplanationService(client, new ObjectMapper());
+        ExplanationService service = new ExplanationService(
+                client, new AiRateLimiter(100, Duration.ofMinutes(10), 100, java.time.Clock.systemUTC()), new ObjectMapper());
 
         Explanation e = service.explain(new ExplanationInput(
                 "lean_withdraw",

@@ -12,6 +12,8 @@ import static org.mockito.Mockito.when;
 import com.coursecompass.llm.ExplanationService.Explanation;
 import com.coursecompass.llm.ExplanationService.ExplanationInput;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +43,7 @@ class ExplanationServiceTest {
     void setUp() {
         gemini = mock(GeminiClient.class);
         when(gemini.isEnabled()).thenReturn(true);
-        service = new ExplanationService(gemini, new ObjectMapper());
+        service = new ExplanationService(gemini, new AiRateLimiter(100, Duration.ofMinutes(10), 100, Clock.systemUTC()), new ObjectMapper());
     }
 
     @Test
@@ -109,6 +111,15 @@ class ExplanationServiceTest {
 
         when(gemini.generateJson(anyString(), anyString(), any())).thenThrow(new GeminiException("timeout"));
         assertThat(service.explain(INPUT).source()).isEqualTo("template");
+    }
+
+    @Test
+    void usesTemplateWhenGlobalAiLimitIsReached() {
+        ExplanationService limited = new ExplanationService(
+                gemini, new AiRateLimiter(100, Duration.ofMinutes(10), 0, Clock.systemUTC()), new ObjectMapper());
+
+        assertThat(limited.explain(INPUT).source()).isEqualTo("template");
+        verify(gemini, never()).generateJson(anyString(), anyString(), any());
     }
 
     @Test
