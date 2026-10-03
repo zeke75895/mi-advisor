@@ -59,6 +59,7 @@ returned as RFC 7807 problem JSON (validation errors include an `errors` map).
 | `GET/POST /api/courses/{id}/items` | Graded items (category, weight % of final grade, points, due date) |
 | `POST /api/items/{id}/rating` | Self-rating 1-10 for an item (latest one counts) |
 | `POST /api/courses/{id}/predict` | Sends study-habit features to the ML service, stores a `RiskScore`. `midtermScore` can be omitted if the course has a graded exam named "Midterm" |
+| `GET /api/courses/{id}/projection` | Projected final grade from grades + self-ratings (works before any prediction) |
 | `GET /api/courses/{id}/recommendation` | Stay/withdraw recommendation from model risk + grade projection + self-ratings, with a Gemini-polished explanation |
 
 The projected final is the weighted average of each item's actual % (graded) or
@@ -105,6 +106,12 @@ cd frontend
 npm install
 npm run dev
 ```
+
+Pages: login/register, dashboard (course cards with risk level, projected grade and
+recommendation), course detail (graded items with 1–10 confidence sliders, projected
+grade meter, weekly check-in → risk check, recommendation card) and syllabus upload
+(PDF accepted; parsing is stubbed). Set `VITE_API_BASE_URL` to point at the backend.
+`vercel.json` rewrites all routes to `index.html` for client-side routing.
 
 ### 5. Train the model
 
