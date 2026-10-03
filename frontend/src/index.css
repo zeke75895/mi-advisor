@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+/* Reference palette: neutral surfaces, one blue accent, status colors reserved for risk/recommendation. */
+@theme {
+  --color-page: #f9f9f7;
+  --color-surface: #fcfcfb;
+  --color-ink: #0b0b0b;
+  --color-ink-2: #52514e;
+  --color-muted: #6f6d68;
+  --color-line: #e1e0d9;
+  --color-accent: #2a78d6;
+  --color-accent-strong: #1d5fb0;
+  --color-accent-soft: #e8f1fc;
+  --color-good: #0ca30c;
+  --color-warning: #fab219;
+  --color-serious: #ec835a;
+  --color-critical: #d03b3b;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+input[type='range'] {
+  accent-color: var(--color-accent);
+}
