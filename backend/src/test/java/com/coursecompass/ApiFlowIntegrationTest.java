@@ -98,10 +98,12 @@ class ApiFlowIntegrationTest {
         verify(mlClient).predict(sent.capture());
         org.assertj.core.api.Assertions.assertThat(sent.getValue().midtermScore()).isEqualTo(55.0);
 
-        // EXAM: weight 60, mean(55, 30) = 42.5; HOMEWORK: 40 * 70 -> projected 53.5, 35% remaining
+        // EXAM: weight 60, mean(55, 30) = 42.5; HOMEWORK: 40 * 70 -> projected 53.5, 35% remaining.
+        // Only 2 items rated, so distress doesn't count: 0.4*0.9078 + 0.25 = 0.61 -> lean_withdraw
         mvc.perform(get("/api/courses/" + courseId + "/recommendation").header("Authorization", bearer(token)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.recommendation").value("strong_withdraw"))
+                .andExpect(jsonPath("$.recommendation").value("lean_withdraw"))
+                .andExpect(jsonPath("$.withdrawScore").value(0.61))
                 .andExpect(jsonPath("$.signals.projectedFinal").value(53.5))
                 .andExpect(jsonPath("$.signals.remainingWeight").value(0.35))
                 .andExpect(jsonPath("$.signals.lowRatings").value(2))

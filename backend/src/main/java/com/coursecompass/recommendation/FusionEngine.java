@@ -12,7 +12,8 @@ import java.util.List;
 
 /**
  * Combines the model's risk with the grade projection and self-ratings into a stay/withdraw
- * recommendation. Port of fusion_logic.py, with the two CourseCompass decision rules applied on top:
+ * recommendation. Port of fusion_logic.py (except that self-rating distress needs at least 3 rated
+ * items), with the two CourseCompass decision rules applied on top:
  *
  * <ul>
  *   <li>projected final >= 70 OR more than 50% of the grade remains: never worse than lean_stay
@@ -25,6 +26,8 @@ public final class FusionEngine {
     static final double LOW_RECOVERY_ROOM = 0.30;
     static final double STAY_RULE_REMAINING = 0.50;
     static final int LOW_RATING = 4;
+    // One or two ratings are too few to call a pattern, so distress only counts from 3 rated items up
+    static final int MIN_RATINGS_FOR_DISTRESS = 3;
 
     // Model gets the highest weight (it's the rubric)
     static final double W_MODEL = 0.40;
@@ -57,7 +60,8 @@ public final class FusionEngine {
         double recoverySignal = in.remainingWeight() < LOW_RECOVERY_ROOM ? 1.0 : 0.0;
         int lowRatings = (int) in.selfRatings().stream().filter(r -> r <= LOW_RATING).count();
         double distressRatio = in.selfRatings().isEmpty() ? 0.0 : (double) lowRatings / in.selfRatings().size();
-        double distressSignal = distressRatio > 0.5 ? 1.0 : 0.0;
+        boolean distressed = in.selfRatings().size() >= MIN_RATINGS_FOR_DISTRESS && distressRatio > 0.5;
+        double distressSignal = distressed ? 1.0 : 0.0;
 
         double score = W_MODEL * in.modelRisk()
                 + W_GRADE * gradeSignal
@@ -96,7 +100,7 @@ public final class FusionEngine {
             case UNCERTAIN -> 0.5;
         };
 
-        List<String> reasoning = reasoning(in, distressRatio, lowRatings, appliedRule);
+        List<String> reasoning = reasoning(in, distressed, lowRatings, appliedRule);
         return new Result(
                 rec,
                 round(confidence, 2),
@@ -109,7 +113,7 @@ public final class FusionEngine {
                 appliedRule);
     }
 
-    private static List<String> reasoning(Inputs in, double distressRatio, int lowRatings, String appliedRule) {
+    private static List<String> reasoning(Inputs in, boolean distressed, int lowRatings, String appliedRule) {
         List<String> reasons = new ArrayList<>();
         // The tree's probability isn't calibrated, so describe it as a level rather than a percentage
         if (in.modelRisk() > 0.7) {
@@ -134,7 +138,7 @@ public final class FusionEngine {
             reasons.add(remainingPct + "% of your grade is still ahead, so recovery is possible.");
         }
 
-        if (distressRatio > 0.5) {
+        if (distressed) {
             reasons.add("You rated " + lowRatings + (lowRatings == 1 ? " item" : " items")
                     + " as low-confidence. That signal matters too.");
         }

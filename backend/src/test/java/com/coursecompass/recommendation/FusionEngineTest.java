@@ -51,8 +51,30 @@ class FusionEngineTest {
     }
 
     @Test
+    void fewerThanThreeRatingsNeverCountAsDistress() {
+        // Projected 58, 35% remaining, model at risk: 0.4*0.9 + 0.25 = 0.61 either way
+        Result one = FusionEngine.compute(new Inputs(0.9, true, 58, 0.35, List.of(4)));
+        Result two = FusionEngine.compute(new Inputs(0.9, true, 58, 0.35, List.of(2, 3)));
+
+        assertThat(one.distressRatio()).isEqualTo(1.0);
+        assertThat(one.withdrawScore()).isEqualTo(0.61);
+        assertThat(one.recommendation()).isEqualTo(RecommendationType.LEAN_WITHDRAW);
+        assertThat(one.reasoning()).noneMatch(s -> s.contains("low-confidence"));
+        assertThat(two.withdrawScore()).isEqualTo(0.61);
+    }
+
+    @Test
+    void threeMostlyLowRatingsCountAsDistress() {
+        Result r = FusionEngine.compute(new Inputs(0.9, true, 58, 0.35, List.of(2, 3, 9)));
+
+        assertThat(r.withdrawScore()).isEqualTo(0.76);
+        assertThat(r.recommendation()).isEqualTo(RecommendationType.STRONG_WITHDRAW);
+        assertThat(r.reasoning()).anyMatch(s -> s.contains("2 items as low-confidence"));
+    }
+
+    @Test
     void lowRatingsCountAsDistressOnlyAboveHalf() {
-        Result half = FusionEngine.compute(new Inputs(0.1, false, 80, 0.5, List.of(2, 9)));
+        Result half = FusionEngine.compute(new Inputs(0.1, false, 80, 0.5, List.of(2, 9, 3, 8)));
         Result most = FusionEngine.compute(new Inputs(0.1, false, 80, 0.5, List.of(2, 3, 9)));
 
         assertThat(half.distressRatio()).isEqualTo(0.5);
