@@ -31,6 +31,30 @@ public final class RiskDtos {
             @DecimalMin("0") @DecimalMax("24") Double avgSleepHours,
             @NotNull @Min(0) Integer studySessionsLogged) {}
 
+    /** Last check-in answers, to prefill the form on any device. */
+    public record CheckInResponse(
+            Double attendanceRate,
+            Integer missedDeadlines,
+            Double onTimeSubmissionRate,
+            Double avgPracticeQuizScore,
+            Double midtermScore,
+            Double avgWeeklyStudyHours,
+            Integer flashcardsReviewed,
+            Double avgDaysStartedBeforeExam,
+            Double lateNightStudyPct,
+            Double avgSleepHours,
+            Integer studySessionsLogged,
+            Instant createdAt) {}
+
+    /** The parts of an ML response that are stored with a RiskScore. */
+    public record RiskDetails(
+            List<TopFeature> topFeatures,
+            List<PathStep> decisionPath,
+            String explanation,
+            List<String> imputedFeatures,
+            String midtermSource,
+            String disclaimer) {}
+
     public record PredictResponse(
             Long riskScoreId,
             Long courseId,

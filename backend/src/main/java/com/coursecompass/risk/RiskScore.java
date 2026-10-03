@@ -35,17 +35,27 @@ public class RiskScore {
     @Column(name = "model_version", nullable = false, length = 40)
     private String modelVersion;
 
+    /** Explanation, decision path and top features from the ML service, as JSON, for the risk card. */
+    @Column(name = "details_json", columnDefinition = "text")
+    private String detailsJson;
+
     @CreationTimestamp
     @Column(name = "computed_at", nullable = false, updatable = false)
     private Instant computedAt;
 
     protected RiskScore() {}
 
-    public RiskScore(Course course, Double riskProbability, boolean atRisk, String modelVersion) {
+    public RiskScore(
+            Course course, Double riskProbability, boolean atRisk, String modelVersion, String detailsJson) {
         this.course = course;
         this.riskProbability = riskProbability;
         this.atRisk = atRisk;
         this.modelVersion = modelVersion;
+        this.detailsJson = detailsJson;
+    }
+
+    public String getDetailsJson() {
+        return detailsJson;
     }
 
     public Long getId() {
