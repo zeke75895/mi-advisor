@@ -1,0 +1,114 @@
+{
+  "features": [
+    "attendance_rate",
+    "missed_deadlines",
+    "on_time_submission_rate",
+    "avg_practice_quiz_score",
+    "midterm_score",
+    "avg_weekly_study_hours",
+    "flashcards_reviewed",
+    "avg_days_started_before_exam",
+    "late_night_study_pct",
+    "avg_sleep_hours",
+    "study_sessions_logged"
+  ],
+  "used_features": [
+    "attendance_rate",
+    "on_time_submission_rate",
+    "midterm_score",
+    "late_night_study_pct"
+  ],
+  "unused_features": [
+    "missed_deadlines",
+    "avg_practice_quiz_score",
+    "avg_weekly_study_hours",
+    "flashcards_reviewed",
+    "avg_days_started_before_exam",
+    "avg_sleep_hours",
+    "study_sessions_logged"
+  ],
+  "best_depth": 3,
+  "depth_selection": "repeated stratified 5x10 CV recall, one-standard-error rule over depths 3-5",
+  "cv_results": [
+    {
+      "max_depth": 2.0,
+      "cv_recall": 0.7869365079365079,
+      "cv_recall_se": 0.019728290529488948,
+      "cv_f1": 0.632001300468771,
+      "cv_roc_auc": 0.84059710256239,
+      "train_recall": 0.8451275485078302,
+      "overfit_gap": 0.058191040571322294
+    },
+    {
+      "max_depth": 3.0,
+      "cv_recall": 0.8096984126984128,
+      "cv_recall_se": 0.010454674634741961,
+      "cv_f1": 0.686041771723114,
+      "cv_roc_auc": 0.8622236303123401,
+      "train_recall": 0.8849748842706591,
+      "overfit_gap": 0.07527647157224626
+    },
+    {
+      "max_depth": 4.0,
+      "cv_recall": 0.7930158730158731,
+      "cv_recall_se": 0.012493182822323458,
+      "cv_f1": 0.6672475188957664,
+      "cv_roc_auc": 0.8606519290278059,
+      "train_recall": 0.9130394957155522,
+      "overfit_gap": 0.12002362269967914
+    },
+    {
+      "max_depth": 5.0,
+      "cv_recall": 0.7754126984126986,
+      "cv_recall_se": 0.012336621693958758,
+      "cv_f1": 0.6894485289301632,
+      "cv_roc_auc": 0.8573729268238385,
+      "train_recall": 0.9311907810499359,
+      "overfit_gap": 0.15577808263723736
+    },
+    {
+      "max_depth": 6.0,
+      "cv_recall": 0.7592380952380953,
+      "cv_recall_se": 0.011140273747469417,
+      "cv_f1": 0.6789609553221717,
+      "cv_roc_auc": 0.8457843562857589,
+      "train_recall": 0.9467645031025314,
+      "overfit_gap": 0.18752640786443608
+    },
+    {
+      "max_depth": 8.0,
+      "cv_recall": 0.7479365079365078,
+      "cv_recall_se": 0.011403875433619823,
+      "cv_f1": 0.6741289112919039,
+      "cv_roc_auc": 0.8372677708764665,
+      "train_recall": 0.9563163596966413,
+      "overfit_gap": 0.20837985176013352
+    },
+    {
+      "max_depth": null,
+      "cv_recall": 0.7490634920634921,
+      "cv_recall_se": 0.011346190963610479,
+      "cv_f1": 0.6753170408226843,
+      "cv_roc_auc": 0.8370823231817272,
+      "train_recall": 0.9564552349059392,
+      "overfit_gap": 0.2073917428424471
+    }
+  ],
+  "train_accuracy": 0.8609375,
+  "test_accuracy": 0.79375,
+  "recall_at_risk": 0.7727272727272727,
+  "precision_at_risk": 0.5964912280701754,
+  "roc_auc": 0.8657915360501567,
+  "feature_importances": {
+    "midterm_score": 0.5890737638970703,
+    "on_time_submission_rate": 0.2150542933362084,
+    "attendance_rate": 0.11429952889012714,
+    "late_night_study_pct": 0.08157241387659404
+  },
+  "tree_rules": "|--- midterm_score <= 64.50\n|   |--- on_time_submission_rate <= 0.80\n|   |   |--- attendance_rate <= 0.94\n|   |   |   |--- class: 1\n|   |   |--- attendance_rate >  0.94\n|   |   |   |--- class: 0\n|   |--- on_time_submission_rate >  0.80\n|   |   |--- late_night_study_pct <= 0.37\n|   |   |   |--- class: 0\n|   |   |--- late_night_study_pct >  0.37\n|   |   |   |--- class: 1\n|--- midterm_score >  64.50\n|   |--- attendance_rate <= 0.78\n|   |   |--- on_time_submission_rate <= 0.89\n|   |   |   |--- class: 1\n|   |   |--- on_time_submission_rate >  0.89\n|   |   |   |--- class: 0\n|   |--- attendance_rate >  0.78\n|   |   |--- on_time_submission_rate <= 0.72\n|   |   |   |--- class: 1\n|   |   |--- on_time_submission_rate >  0.72\n|   |   |   |--- class: 0\n",
+  "imputation_values": {
+    "work_hours_per_week": 2.0,
+    "avg_sleep_hours": 6.2,
+    "avg_practice_quiz_score": 0.0
+  }
+}
