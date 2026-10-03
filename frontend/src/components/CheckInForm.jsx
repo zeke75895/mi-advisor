@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { loadLocal, saveLocal } from '../lib/format'
+import { useEffect, useState } from 'react'
+import { courseApi } from '../api/client'
 import Field, { Button, ErrorBanner, inputClass } from './Field'
 
 // Percent fields are typed as 0-100 here and sent to the API as 0-1 fractions.
@@ -19,11 +19,33 @@ const FIELDS = [
 
 const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.key, '']))
 
-/** Weekly check-in: the study-habit inputs the risk model needs. Remembered per course on this device. */
+/** Server values (fractions) back into what the form shows (percent fields as 0-100). */
+function toForm(checkIn) {
+  return Object.fromEntries(
+    FIELDS.map((f) => {
+      const v = checkIn?.[f.key]
+      if (v == null) return [f.key, '']
+      return [f.key, String(f.percent ? Math.round(v * 1000) / 10 : v)]
+    }),
+  )
+}
+
+/** Weekly check-in: the study-habit inputs the risk model needs. Prefilled from the last check-in. */
 export default function CheckInForm({ courseId, onSubmit, busy, error }) {
-  const storageKey = `cc_checkin_${courseId}`
-  const [values, setValues] = useState(() => ({ ...EMPTY, ...loadLocal(storageKey, {}) }))
+  const [values, setValues] = useState(EMPTY)
+  const [lastDate, setLastDate] = useState(null)
   const [localError, setLocalError] = useState(null)
+
+  useEffect(() => {
+    courseApi
+      .latestCheckIn(courseId)
+      .then((c) => {
+        if (!c) return
+        setValues(toForm(c))
+        setLastDate(c.createdAt)
+      })
+      .catch(() => {})
+  }, [courseId])
 
   function set(key, value) {
     setValues((v) => ({ ...v, [key]: value }))
@@ -45,7 +67,6 @@ export default function CheckInForm({ courseId, onSubmit, busy, error }) {
       body[f.key] = f.percent ? n / 100 : f.integer ? Math.round(n) : n
     }
     setLocalError(null)
-    saveLocal(storageKey, values)
     onSubmit(body)
   }
 
@@ -54,6 +75,7 @@ export default function CheckInForm({ courseId, onSubmit, busy, error }) {
       <h3 className="font-semibold">Weekly check-in</h3>
       <p className="mt-1 text-sm text-ink-2">
         A few honest numbers about how this course is going. They're used only for your risk check.
+        {lastDate && ` Filled in from your last check-in on ${new Date(lastDate).toLocaleDateString()}.`}
       </p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         {FIELDS.map((f) => (

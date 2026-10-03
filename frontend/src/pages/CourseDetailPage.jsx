@@ -8,17 +8,14 @@ import GradeMeter from '../components/GradeMeter'
 import ItemRow from '../components/ItemRow'
 import RecommendationCard from '../components/RecommendationCard'
 import RiskCard from '../components/RiskCard'
-import { RiskBadge } from '../components/StatusBadge'
-import { loadLocal, riskLevel, saveLocal } from '../lib/format'
 
 export default function CourseDetailPage() {
   const { courseId } = useParams()
-  const riskKey = `cc_risk_${courseId}`
   const [course, setCourse] = useState(null)
   const [items, setItems] = useState(null)
   const [projection, setProjection] = useState(null)
   const [recommendation, setRecommendation] = useState(null)
-  const [risk, setRisk] = useState(() => loadLocal(riskKey, null))
+  const [risk, setRisk] = useState(null)
   const [stale, setStale] = useState(false)
   const [error, setError] = useState(null)
   const [predicting, setPredicting] = useState(false)
@@ -32,11 +29,12 @@ export default function CourseDetailPage() {
     let cancelled = false
     async function load() {
       try {
-        const [courses, itemList, proj, rec] = await Promise.all([
+        const [courses, itemList, proj, rec, latestRisk] = await Promise.all([
           courseApi.list(),
           courseApi.items(courseId),
           courseApi.projection(courseId),
           courseApi.recommendation(courseId),
+          courseApi.latestRisk(courseId),
         ])
         if (cancelled) return
         const found = courses.find((c) => String(c.id) === courseId)
@@ -45,6 +43,7 @@ export default function CourseDetailPage() {
         setItems(itemList)
         setProjection(proj)
         setRecommendation(rec)
+        setRisk(latestRisk)
       } catch (e) {
         if (!cancelled) setError(e.message)
       }
@@ -78,9 +77,7 @@ export default function CourseDetailPage() {
     setPredicting(true)
     setPredictError(null)
     try {
-      const result = await courseApi.predict(courseId, features)
-      setRisk(result)
-      saveLocal(riskKey, result)
+      setRisk(await courseApi.predict(courseId, features))
       await refreshRecommendation()
     } catch (e) {
       setPredictError(e.message)
@@ -143,25 +140,26 @@ export default function CourseDetailPage() {
               <GradeMeter projection={projection} />
             </div>
           </section>
-          {risk ? (
-            <RiskCard result={risk} />
-          ) : (
-            recommendation && (
-              // Full predict details are kept on the device that ran the check; elsewhere show the level only
-              <section className="rounded-xl border border-line bg-surface p-5">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="font-semibold">Risk check</h3>
-                  <RiskBadge level={riskLevel(recommendation.signals.modelRisk)} />
-                </div>
-                <p className="mt-2 text-sm text-ink-2">
-                  Last checked {new Date(recommendation.riskComputedAt).toLocaleDateString()}. Submit the weekly check-in
-                  below to see what drove this result.
-                </p>
-              </section>
-            )
-          )}
+          {risk && <RiskCard result={risk} />}
         </aside>
       </div>
+
+      <section className="rounded-xl border border-line bg-surface p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold">Study tools</h2>
+            <p className="text-sm text-ink-2">Turn your notes into AI-generated flashcards or a practice quiz.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link to={`/courses/${courseId}/flashcards`} className="rounded-md border border-line px-4 py-2 text-sm font-semibold hover:bg-line/40">
+              Flashcards
+            </Link>
+            <Link to={`/courses/${courseId}/quiz`} className="rounded-md border border-line px-4 py-2 text-sm font-semibold hover:bg-line/40">
+              Practice quiz
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {recommendation && (
         <RecommendationCard rec={recommendation} stale={stale} onRefresh={refreshRecommendation} refreshing={refreshing} />

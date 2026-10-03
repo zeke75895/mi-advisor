@@ -41,21 +41,3 @@ export const RECOMMENDATION_TONE = {
   lean_withdraw: 'serious',
   strong_withdraw: 'critical',
 }
-
-/** Per-viewer convenience storage; never required for the app to work. */
-export function loadLocal(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : fallback
-  } catch {
-    return fallback
-  }
-}
-
-export function saveLocal(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    // ignore
-  }
-}
