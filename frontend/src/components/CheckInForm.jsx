@@ -1,0 +1,81 @@
+import { useState } from 'react'
+import { loadLocal, saveLocal } from '../lib/format'
+import Field, { Button, ErrorBanner, inputClass } from './Field'
+
+// Percent fields are typed as 0-100 here and sent to the API as 0-1 fractions.
+const FIELDS = [
+  { key: 'attendanceRate', label: 'Classes attended', unit: '%', percent: true, required: true },
+  { key: 'onTimeSubmissionRate', label: 'Assignments submitted on time', unit: '%', percent: true, required: true },
+  { key: 'missedDeadlines', label: 'Deadlines missed so far', unit: '', required: true, integer: true },
+  { key: 'midtermScore', label: 'Midterm score', unit: '/100', hint: 'Leave blank to use your graded "Midterm" item' },
+  { key: 'avgPracticeQuizScore', label: 'Practice quiz average', unit: '/100', hint: 'Leave blank if you took none' },
+  { key: 'avgWeeklyStudyHours', label: 'Study hours per week', unit: 'h', required: true },
+  { key: 'studySessionsLogged', label: 'Study sessions so far', unit: '', required: true, integer: true },
+  { key: 'flashcardsReviewed', label: 'Flashcards reviewed', unit: '', required: true, integer: true },
+  { key: 'avgDaysStartedBeforeExam', label: 'Days you start studying before an exam', unit: 'days', required: true },
+  { key: 'lateNightStudyPct', label: 'Studying done 12–4 a.m.', unit: '%', percent: true, required: true },
+  { key: 'avgSleepHours', label: 'Average sleep per night', unit: 'h', hint: 'Optional' },
+]
+
+const EMPTY = Object.fromEntries(FIELDS.map((f) => [f.key, '']))
+
+/** Weekly check-in: the study-habit inputs the risk model needs. Remembered per course on this device. */
+export default function CheckInForm({ courseId, onSubmit, busy, error }) {
+  const storageKey = `cc_checkin_${courseId}`
+  const [values, setValues] = useState(() => ({ ...EMPTY, ...loadLocal(storageKey, {}) }))
+  const [localError, setLocalError] = useState(null)
+
+  function set(key, value) {
+    setValues((v) => ({ ...v, [key]: value }))
+  }
+
+  function submit(e) {
+    e.preventDefault()
+    const body = {}
+    for (const f of FIELDS) {
+      const raw = String(values[f.key]).trim()
+      if (raw === '') {
+        if (f.required) return setLocalError(`Please fill in "${f.label}".`)
+        body[f.key] = null
+        continue
+      }
+      const n = Number(raw)
+      if (!Number.isFinite(n) || n < 0) return setLocalError(`"${f.label}" must be a number of 0 or more.`)
+      if (f.percent && n > 100) return setLocalError(`"${f.label}" must be between 0 and 100%.`)
+      body[f.key] = f.percent ? n / 100 : f.integer ? Math.round(n) : n
+    }
+    setLocalError(null)
+    saveLocal(storageKey, values)
+    onSubmit(body)
+  }
+
+  return (
+    <form onSubmit={submit} className="rounded-xl border border-line bg-surface p-5" noValidate>
+      <h3 className="font-semibold">Weekly check-in</h3>
+      <p className="mt-1 text-sm text-ink-2">
+        A few honest numbers about how this course is going. They're used only for your risk check.
+      </p>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {FIELDS.map((f) => (
+          <Field key={f.key} label={`${f.label}${f.unit ? ` (${f.unit})` : ''}`} hint={f.hint}>
+            <input
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="any"
+              className={inputClass}
+              value={values[f.key]}
+              onChange={(e) => set(f.key, e.target.value)}
+            />
+          </Field>
+        ))}
+      </div>
+      <div className="mt-4 space-y-3">
+        <ErrorBanner error={localError || error} />
+        <Button type="submit" disabled={busy} className="w-full sm:w-auto">
+          {busy ? 'Checking…' : 'Predict risk'}
+        </Button>
+      </div>
+    </form>
+  )
+}
