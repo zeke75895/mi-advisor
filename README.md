@@ -57,6 +57,22 @@ uvicorn app.main:app --reload --port 8000
 curl localhost:8000/health   # {"status":"ok"}
 ```
 
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | Liveness check |
+| `POST /predict` | Risk prediction: `at_risk`, `risk_probability`, `top_features`, decision path, plain-language explanation, disclaimer |
+| `GET /model-info` | Test-set metrics, baseline, hyperparameters, feature importances |
+| `GET /docs` | Interactive API docs with an example request |
+
+```bash
+python scripts/test_predict.py            # sample prediction against a running service
+pip install -r requirements-dev.txt && pytest   # unit tests
+docker build -t coursecompass-ml . && docker run -p 8000:8000 coursecompass-ml
+```
+
+Loads `models/tree_v1.joblib` + `models/model_config.json` at startup. `scikit-learn`
+is pinned to the version the model was trained with.
+
 ### 4. Frontend — http://localhost:5173
 
 ```bash
