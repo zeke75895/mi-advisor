@@ -13,6 +13,7 @@ public final class RecommendationDtos {
             double projectedFinal,
             Double currentGrade,
             double remainingWeight,
+            double coveredWeight,
             double distressRatio,
             int lowRatings,
             int ratedItems) {}

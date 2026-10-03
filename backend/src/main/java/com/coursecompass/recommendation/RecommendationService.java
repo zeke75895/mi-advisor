@@ -55,8 +55,7 @@ public class RecommendationService {
         }
         Map<Long, Integer> ratings = ratingService.latestRatingsForCourse(courseId);
         Projection projection = GradeProjector.project(courseItems.stream()
-                .map(i -> new ItemInput(
-                        i.getCategory(), i.getWeight(), i.isGraded(), i.percentScore(), ratings.get(i.getId())))
+                .map(i -> new ItemInput(i.getWeight(), i.isGraded(), i.percentScore(), ratings.get(i.getId())))
                 .toList());
         if (projection.projectedFinal() == null) {
             throw new ConflictException("Grade or self-rate at least one item to project a final grade.");
@@ -83,6 +82,7 @@ public class RecommendationService {
                         Math.round(projection.projectedFinal() * 10) / 10.0,
                         projection.currentGrade() == null ? null : Math.round(projection.currentGrade() * 10) / 10.0,
                         round(projection.remainingWeight()),
+                        round(projection.coveredWeight()),
                         result.distressRatio(),
                         result.lowRatings(),
                         ratings.size()),
