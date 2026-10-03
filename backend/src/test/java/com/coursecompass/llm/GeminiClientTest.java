@@ -24,6 +24,8 @@ class GeminiClientTest {
     private final AtomicReference<String> apiKeyHeader = new AtomicReference<>();
     private final AtomicReference<String> body = new AtomicReference<>();
     private volatile int status = 200;
+    private volatile int failuresBeforeSuccess = 0;
+    private final java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
     private volatile String response = "{}";
 
     @BeforeEach
@@ -33,9 +35,10 @@ class GeminiClientTest {
             path.set(exchange.getRequestURI().toString());
             apiKeyHeader.set(exchange.getRequestHeaders().getFirst("x-goog-api-key"));
             body.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
-            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+            boolean fail = calls.incrementAndGet() <= failuresBeforeSuccess;
+            byte[] bytes = (fail ? "{\"error\": \"overloaded\"}" : response).getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "application/json");
-            exchange.sendResponseHeaders(status, bytes.length);
+            exchange.sendResponseHeaders(fail ? 503 : status, bytes.length);
             exchange.getResponseBody().write(bytes);
             exchange.close();
         });
@@ -92,6 +95,30 @@ class GeminiClientTest {
         assertThatThrownBy(() -> client("secret-key").generateJson("s", "u", Map.of()))
                 .isInstanceOf(GeminiException.class)
                 .hasMessageNotContaining("secret-key");
+    }
+
+    @Test
+    void retriesOnceAfterAServerError() {
+        failuresBeforeSuccess = 1;
+        response = """
+                {"candidates": [{"content": {"parts": [{"text": "ok"}]}}]}
+                """;
+
+        assertThat(client("k").generateJson("s", "u", Map.of())).isEqualTo("ok");
+        assertThat(calls.get()).isEqualTo(2);
+    }
+
+    @Test
+    void givesUpAfterTwoServerErrorsAndNeverRetriesClientErrors() {
+        failuresBeforeSuccess = 5;
+        assertThatThrownBy(() -> client("k").generateJson("s", "u", Map.of())).isInstanceOf(GeminiException.class);
+        assertThat(calls.get()).isEqualTo(2);
+
+        calls.set(0);
+        failuresBeforeSuccess = 0;
+        status = 400;
+        assertThatThrownBy(() -> client("k").generateJson("s", "u", Map.of())).isInstanceOf(GeminiException.class);
+        assertThat(calls.get()).isEqualTo(1);
     }
 
     @Test
