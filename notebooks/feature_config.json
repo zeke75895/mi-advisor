@@ -1,0 +1,93 @@
+{
+  "target": "at_risk",
+  "id_column": "student_id",
+  "model_features": [
+    "attendance_rate",
+    "missed_deadlines",
+    "on_time_submission_rate",
+    "avg_practice_quiz_score",
+    "midterm_score",
+    "avg_weekly_study_hours",
+    "flashcards_reviewed",
+    "avg_days_started_before_exam",
+    "late_night_study_pct",
+    "avg_sleep_hours",
+    "study_sessions_logged"
+  ],
+  "all_features": [
+    "credit_hours",
+    "work_hours_per_week",
+    "avg_weekly_study_hours",
+    "study_sessions_logged",
+    "materials_uploaded",
+    "practice_quizzes_taken",
+    "avg_practice_quiz_score",
+    "flashcards_reviewed",
+    "avg_days_started_before_exam",
+    "on_time_submission_rate",
+    "missed_deadlines",
+    "late_night_study_pct",
+    "attendance_rate",
+    "avg_sleep_hours",
+    "midterm_score",
+    "course_BIO 181",
+    "course_CH 101",
+    "course_CSC 216",
+    "course_EC 201",
+    "course_ECE 200",
+    "course_MA 241",
+    "course_PY 205",
+    "course_ST 311",
+    "class_year_Freshman",
+    "class_year_Junior",
+    "class_year_Senior",
+    "class_year_Sophomore"
+  ],
+  "numeric_features": [
+    "credit_hours",
+    "work_hours_per_week",
+    "avg_weekly_study_hours",
+    "study_sessions_logged",
+    "materials_uploaded",
+    "practice_quizzes_taken",
+    "avg_practice_quiz_score",
+    "flashcards_reviewed",
+    "avg_days_started_before_exam",
+    "on_time_submission_rate",
+    "missed_deadlines",
+    "late_night_study_pct",
+    "attendance_rate",
+    "avg_sleep_hours",
+    "midterm_score"
+  ],
+  "categorical_columns": {
+    "course": [
+      "BIO 181",
+      "CH 101",
+      "CSC 216",
+      "EC 201",
+      "ECE 200",
+      "MA 241",
+      "PY 205",
+      "ST 311"
+    ],
+    "class_year": [
+      "Freshman",
+      "Junior",
+      "Senior",
+      "Sophomore"
+    ]
+  },
+  "imputation_values": {
+    "work_hours_per_week": 2.0,
+    "avg_sleep_hours": 6.2,
+    "avg_practice_quiz_score": 0.0
+  },
+  "split": {
+    "test_size": 0.2,
+    "random_state": 42,
+    "stratify": "at_risk"
+  },
+  "n_rows": 800,
+  "positive_rate": 0.2775
+}
