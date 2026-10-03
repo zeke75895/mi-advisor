@@ -71,8 +71,15 @@ npm run dev
 cd notebooks
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-jupyter notebook train_model.ipynb
+jupyter notebook
 ```
 
-Reads `data/wolfhacks_2026_student_outcomes.xlsx` and writes
-`ml-service/models/tree_v1.joblib` + `model_config.json`.
+Run in order:
+
+1. `01_explore_clean.ipynb`: loads `data/wolfhacks_2026_student_outcomes.xlsx`,
+   makes the stratified 80/20 split, imputes, encodes, and writes
+   `cleaned_data.csv` + `feature_config.json`.
+2. `02_train_evaluate.ipynb`: baseline, depth selection by cross-validation,
+   test-set evaluation, feature importances, and exports
+   `ml-service/models/tree_v1.joblib` + `model_config.json`. Charts are saved
+   to `notebooks/figures/`.
