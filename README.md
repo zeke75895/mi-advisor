@@ -62,6 +62,26 @@ returned as RFC 7807 problem JSON (validation errors include an `errors` map).
 | `GET /api/courses/{id}/projection` | Projected final grade from grades + self-ratings (works before any prediction) |
 | `GET /api/courses/{id}/recommendation` | Stay/withdraw recommendation from model risk + grade projection + self-ratings, with a Gemini-polished explanation |
 
+| `GET/PUT /api/courses/{id}/notes` | The course's study notes (pasted text, up to 100,000 characters) |
+| `POST /api/courses/{id}/notes/pdf` | Upload a PDF (multipart `file`, ≤10 MB); its text becomes the course notes |
+| `GET /api/courses/{id}/risk/latest`, `GET /api/courses/{id}/check-in/latest` | Last risk check (with explanation) and last check-in answers |
+| `POST /api/materials/{courseId}/generate-flashcards` | 10 Q/A flashcards from `{"content": "..."}` or, if omitted, the saved notes. Labeled AI-generated |
+| `POST /api/materials/{courseId}/generate-questions` | 5 multiple-choice questions with answers and explanations (same input) |
+| `GET /api/materials/{courseId}/flashcards`, `.../questions` | Latest saved flashcard set / quiz |
+| `POST /api/study-plan/generate` | 7-day plan from deadlines in the next 14 days and items rated 4/10 or lower (`{"startDate", "hoursPerDay", "courseIds", "timeZone"}`, all optional) |
+| `GET /api/study-plan/latest` | Latest saved plan |
+
+"Latest" endpoints return 204 when nothing is saved yet. Everything a student enters
+or generates is stored in Postgres, so it follows them across devices.
+
+AI generation is capped per user (`AI_USER_LIMIT` per `AI_USER_WINDOW`, default 10 per
+10 minutes) and globally (`AI_GLOBAL_LIMIT_PER_MINUTE`, default 15) to protect the Gemini
+free-tier quota; over the cap returns 429 with `Retry-After`. Gemini server errors are
+retried once. The study endpoints need `GEMINI_API_KEY` (503 without it). Gemini output is checked
+before it's returned: the item counts are enforced through the response schema, every
+question needs 4 distinct options and a valid answer index, and plans are pinned to
+the requested 7 dates and the daily time limit.
+
 The projected final is the weighted average of each item's actual % (graded) or
 self-rating × 10 (ungraded), using the syllabus weights. If `GEMINI_API_KEY` is set,
 the reasoning bullets are rewritten by Gemini (prompts in
@@ -109,8 +129,9 @@ npm run dev
 
 Pages: login/register, dashboard (course cards with risk level, projected grade and
 recommendation), course detail (graded items with 1–10 confidence sliders, projected
-grade meter, weekly check-in → risk check, recommendation card) and syllabus upload
-(PDF accepted; parsing is stubbed). Set `VITE_API_BASE_URL` to point at the backend.
+grade meter, weekly check-in → risk check, recommendation card), flashcards (flip
+cards) and practice quiz per course, a 7-day study plan, and PDF upload (text is extracted into the course notes;
+deadlines and weights are still entered by hand). Everything Gemini writes is labeled "AI-generated". Set `VITE_API_BASE_URL` to point at the backend.
 `vercel.json` rewrites all routes to `index.html` for client-side routing.
 
 ### 5. Train the model
