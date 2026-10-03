@@ -1,0 +1,10 @@
+Dates to plan: {{dates}}
+Daily study limit: {{hours_per_day}} hours
+
+Upcoming deadlines:
+{{deadlines}}
+
+Weak topics (low self-confidence ratings, 1-10):
+{{weak_topics}}
+
+Courses: {{courses}}

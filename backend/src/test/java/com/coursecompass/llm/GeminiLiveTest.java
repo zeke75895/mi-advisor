@@ -2,8 +2,16 @@ package com.coursecompass.llm;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.coursecompass.course.Course;
+import com.coursecompass.course.CourseService;
 import com.coursecompass.llm.ExplanationService.Explanation;
 import com.coursecompass.llm.ExplanationService.ExplanationInput;
+import com.coursecompass.study.StudyDtos.FlashcardResponse;
+import com.coursecompass.study.StudyDtos.QuestionResponse;
+import com.coursecompass.study.StudyMaterialService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.util.List;
@@ -18,17 +26,62 @@ import org.springframework.web.client.RestClient;
 @EnabledIfEnvironmentVariable(named = "GEMINI_API_KEY", matches = ".+")
 class GeminiLiveTest {
 
-    @Test
-    void realGeminiRewritePassesTheSafetyChecks() {
-        String model = System.getenv().getOrDefault("GEMINI_MODEL", "gemini-3.5-flash-lite");
-        GeminiClient client = new GeminiClient(
+    private static final String MODEL = System.getenv().getOrDefault("GEMINI_MODEL", "gemini-3.5-flash-lite");
+    private static final String NOTES = "Photosynthesis converts light energy into chemical energy stored in glucose."
+            + " It happens in chloroplasts, which contain chlorophyll. The light-dependent reactions occur in the"
+            + " thylakoid membranes, split water, release oxygen and make ATP and NADPH. The Calvin cycle runs in the"
+            + " stroma, where RuBisCO fixes carbon dioxide using ATP and NADPH. Light intensity, carbon dioxide"
+            + " concentration and temperature limit the rate. C4 and CAM plants reduce photorespiration.";
+
+    private static GeminiClient client() {
+        return new GeminiClient(
                 RestClient.builder(),
                 "https://generativelanguage.googleapis.com/v1beta",
                 System.getenv("GEMINI_API_KEY"),
-                model,
-                Duration.ofSeconds(30));
-        ExplanationService service = new ExplanationService(
-                client, new AiRateLimiter(100, Duration.ofMinutes(10), 100, java.time.Clock.systemUTC()), new ObjectMapper());
+                MODEL,
+                Duration.ofSeconds(60));
+    }
+
+    private static StudyMaterialService materialService() {
+        CourseService courses = mock(CourseService.class);
+        when(courses.getOwned(1L, 1L)).thenReturn(new Course(null, "BIO 181", "Intro Biology", 4, null));
+        return new StudyMaterialService(
+                courses,
+                client(),
+                limiter(),
+                mock(com.coursecompass.notes.NotesService.class),
+                mock(com.coursecompass.study.GeneratedMaterialRepository.class),
+                new ObjectMapper().findAndRegisterModules(),
+                java.time.Clock.systemUTC());
+    }
+
+    private static AiRateLimiter limiter() {
+        return new AiRateLimiter(100, Duration.ofMinutes(10), 100, java.time.Clock.systemUTC());
+    }
+
+    @Test
+    void realGeminiMakesTenFlashcards() {
+        FlashcardResponse r = materialService().flashcards(1L, 1L, NOTES);
+
+        r.flashcards().forEach(c -> System.out.println("  Q: " + c.question() + " | A: " + c.answer()));
+        assertThat(r.flashcards()).hasSize(10);
+        assertThat(r.label()).isEqualTo("AI-generated");
+    }
+
+    @Test
+    void realGeminiMakesFiveValidQuestions() {
+        QuestionResponse r = materialService().questions(1L, 1L, NOTES);
+
+        assertThat(r.questions()).hasSize(5).allSatisfy(q -> {
+            assertThat(q.options()).hasSize(4);
+            assertThat(q.correctOptionIndex()).isBetween(0, 3);
+        });
+    }
+
+    @Test
+    void realGeminiRewritePassesTheSafetyChecks() {
+        String model = MODEL;
+        ExplanationService service = new ExplanationService(client(), limiter(), new ObjectMapper());
 
         Explanation e = service.explain(new ExplanationInput(
                 "lean_withdraw",

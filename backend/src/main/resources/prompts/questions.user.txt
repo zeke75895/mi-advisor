@@ -1,0 +1,10 @@
+Course: {{course}}
+
+Generate 5 multiple-choice questions with answers + explanations.
+Each question has exactly 4 options, one correct. correctOptionIndex is the 0-based index of the
+correct option. Wrong options should be plausible. The explanation says why the answer is right
+in 1-2 sentences.
+
+<material>
+{{material}}
+</material>
