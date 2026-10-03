@@ -1,0 +1,78 @@
+# CourseCompass
+
+AI student hub for WolfHacks 2026 (Institute for Advanced Analytics track).
+
+Syllabus ingest → self-ratings → decision-tree risk prediction → stay/withdraw
+recommendation → study plan + flashcards.
+
+> All data is synthetic. Risk outputs are guidance, not a verdict. Talk to your
+> advisor before withdrawing from a course.
+
+## Repo layout
+
+| Path          | Stack                               | Deploy  |
+|---------------|-------------------------------------|---------|
+| `frontend/`   | React + Vite + Tailwind             | Vercel  |
+| `backend/`    | Spring Boot 3, Java 17, Maven, JPA  | Railway |
+| `ml-service/` | FastAPI + scikit-learn              | Railway |
+| `notebooks/`  | Jupyter training + evaluation       | —       |
+| `data/`       | WolfHacks synthetic dataset (xlsx)  | —       |
+
+## Prerequisites
+
+Node 20+, Java 17+, Maven 3.9+, Python 3.11+, Docker.
+
+## Local development
+
+```bash
+cp .env.example .env
+```
+
+### 1. Postgres
+
+```bash
+docker compose up -d
+```
+
+Runs Postgres 16 on `localhost:5432` (db/user/password: `coursecompass`).
+
+### 2. Backend — http://localhost:8080
+
+```bash
+cd backend
+mvn spring-boot:run
+curl localhost:8080/health   # {"status":"ok"}
+```
+
+Needs Postgres running. Connection settings come from `DATABASE_URL`,
+`DATABASE_USERNAME`, `DATABASE_PASSWORD` and default to the docker-compose values.
+
+### 3. ML service — http://localhost:8000
+
+```bash
+cd ml-service
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+curl localhost:8000/health   # {"status":"ok"}
+```
+
+### 4. Frontend — http://localhost:5173
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 5. Train the model
+
+```bash
+cd notebooks
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+jupyter notebook train_model.ipynb
+```
+
+Reads `data/wolfhacks_2026_student_outcomes.xlsx` and writes
+`ml-service/models/tree_v1.joblib` + `model_config.json`.
