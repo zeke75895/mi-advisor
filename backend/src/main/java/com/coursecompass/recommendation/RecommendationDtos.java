@@ -1,5 +1,6 @@
 package com.coursecompass.recommendation;
 
+import com.coursecompass.llm.ExplanationService.Explanation;
 import java.time.Instant;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public final class RecommendationDtos {
             String headline,
             List<String> reasoning,
             List<String> actions,
+            Explanation explanation,
             Signals signals,
             String appliedRule,
             String advisorNote,

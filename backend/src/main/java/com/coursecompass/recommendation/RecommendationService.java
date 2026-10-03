@@ -4,6 +4,9 @@ import com.coursecompass.common.ConflictException;
 import com.coursecompass.course.CourseService;
 import com.coursecompass.item.GradedItem;
 import com.coursecompass.item.GradedItemRepository;
+import com.coursecompass.llm.ExplanationService;
+import com.coursecompass.llm.ExplanationService.Explanation;
+import com.coursecompass.llm.ExplanationService.ExplanationInput;
 import com.coursecompass.rating.SelfRatingService;
 import com.coursecompass.recommendation.GradeProjector.ItemInput;
 import com.coursecompass.recommendation.GradeProjector.Projection;
@@ -14,7 +17,6 @@ import com.coursecompass.risk.RiskService;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RecommendationService {
@@ -28,21 +30,25 @@ public class RecommendationService {
     private final SelfRatingService ratingService;
     private final RiskService riskService;
     private final FusionService fusion;
+    private final ExplanationService explanationService;
 
     public RecommendationService(
             CourseService courseService,
             GradedItemRepository items,
             SelfRatingService ratingService,
             RiskService riskService,
-            FusionService fusion) {
+            FusionService fusion,
+            ExplanationService explanationService) {
         this.courseService = courseService;
         this.items = items;
         this.ratingService = ratingService;
         this.riskService = riskService;
         this.fusion = fusion;
+        this.explanationService = explanationService;
     }
 
-    @Transactional(readOnly = true)
+    // Not @Transactional: each read runs in its own short transaction so the Gemini call below
+    // doesn't hold a database connection open.
     public RecommendationResponse recommend(Long userId, Long courseId) {
         courseService.getOwned(userId, courseId);
 
@@ -68,6 +74,18 @@ public class RecommendationService {
                 projection.remainingWeight(),
                 ratings.values()));
 
+        Explanation explanation = explanationService.explain(new ExplanationInput(
+                result.recommendation().json(),
+                result.headline(),
+                FusionService.riskLevel(risk.getRiskProbability()),
+                Math.round(projection.projectedFinal()),
+                projection.currentGrade() == null ? null : Math.round(projection.currentGrade()),
+                Math.round(projection.remainingWeight() * 100),
+                result.lowRatings(),
+                ratings.size(),
+                result.reasoning(),
+                result.actions()));
+
         return new RecommendationResponse(
                 courseId,
                 result.recommendation(),
@@ -76,6 +94,7 @@ public class RecommendationService {
                 result.headline(),
                 result.reasoning(),
                 result.actions(),
+                explanation,
                 new Signals(
                         round(risk.getRiskProbability()),
                         risk.isAtRisk(),

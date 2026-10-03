@@ -105,6 +105,10 @@ class ApiFlowIntegrationTest {
                 .andExpect(jsonPath("$.recommendation").value("lean_withdraw"))
                 .andExpect(jsonPath("$.withdrawScore").value(0.61))
                 .andExpect(jsonPath("$.signals.projectedFinal").value(52.3))
+                // No GEMINI_API_KEY in tests -> template bullets, no AI label
+                .andExpect(jsonPath("$.explanation.source").value("template"))
+                .andExpect(jsonPath("$.explanation.label").doesNotExist())
+                .andExpect(jsonPath("$.explanation.reasoning", hasSize(3)))
                 .andExpect(jsonPath("$.signals.remainingWeight").value(0.35))
                 .andExpect(jsonPath("$.signals.lowRatings").value(2))
                 .andExpect(jsonPath("$.advisorNote").value("Talk to your advisor before withdrawing."))
