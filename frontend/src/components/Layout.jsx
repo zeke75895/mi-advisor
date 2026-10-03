@@ -17,8 +17,11 @@ export default function Layout() {
             <NavLink to="/" end className={navClass}>
               Dashboard
             </NavLink>
+            <NavLink to="/study-plan" className={navClass}>
+              Study plan
+            </NavLink>
             <NavLink to="/upload" className={navClass}>
-              Upload syllabus
+              Upload
             </NavLink>
             <span className="hidden px-2 text-sm text-muted sm:inline" title={email ?? ''}>
               {email}

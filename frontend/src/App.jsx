@@ -3,8 +3,11 @@ import { useAuth } from './auth/AuthContext'
 import Layout from './components/Layout'
 import CourseDetailPage from './pages/CourseDetailPage'
 import DashboardPage from './pages/DashboardPage'
+import FlashcardsPage from './pages/FlashcardsPage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
+import QuizPage from './pages/QuizPage'
+import StudyPlanPage from './pages/StudyPlanPage'
 import UploadPage from './pages/UploadPage'
 
 function RequireAuth({ children }) {
@@ -26,6 +29,9 @@ function App() {
       >
         <Route index element={<DashboardPage />} />
         <Route path="courses/:courseId" element={<CourseDetailPage />} />
+        <Route path="courses/:courseId/flashcards" element={<FlashcardsPage />} />
+        <Route path="courses/:courseId/quiz" element={<QuizPage />} />
+        <Route path="study-plan" element={<StudyPlanPage />} />
         <Route path="upload" element={<UploadPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
