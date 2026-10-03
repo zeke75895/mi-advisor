@@ -39,11 +39,31 @@ class GradeProjectorTest {
     void leavesOutUnratedUngradedItems() {
         Projection p = GradeProjector.project(List.of(
                 new ItemInput(20, true, 80.0, null),
-                new ItemInput(30, false, null, null)));
+                new ItemInput(80, false, null, null)));
 
         assertThat(p.projectedFinal()).isCloseTo(80.0, within(1e-9));
-        assertThat(p.coveredWeight()).isCloseTo(0.4, within(1e-9));
-        assertThat(p.remainingWeight()).isCloseTo(0.6, within(1e-9));
+        assertThat(p.coveredWeight()).isCloseTo(0.2, within(1e-9));
+        assertThat(p.remainingWeight()).isCloseTo(0.8, within(1e-9));
+    }
+
+    @Test
+    void weightNotEnteredYetCountsAsStillAhead() {
+        // Only the 30% midterm is entered: 70% of the final grade is still ahead, not 0%
+        Projection p = GradeProjector.project(List.of(new ItemInput(30, true, 85.0, null)));
+
+        assertThat(p.projectedFinal()).isCloseTo(85.0, within(1e-9));
+        assertThat(p.remainingWeight()).isCloseTo(0.7, within(1e-9));
+        assertThat(p.coveredWeight()).isCloseTo(0.3, within(1e-9));
+    }
+
+    @Test
+    void weightsOverOneHundredAreNormalizedByTheirSum() {
+        Projection p = GradeProjector.project(List.of(
+                new ItemInput(60, true, 90.0, null),
+                new ItemInput(60, false, null, 5)));
+
+        assertThat(p.remainingWeight()).isCloseTo(0.5, within(1e-9));
+        assertThat(p.coveredWeight()).isCloseTo(1.0, within(1e-9));
     }
 
     @Test
