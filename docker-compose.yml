@@ -1,3 +1,6 @@
+# Fixed project name so the data volume (coursecompass_pgdata) survives renaming the folder
+name: coursecompass
+
 services:
   postgres:
     image: postgres:16

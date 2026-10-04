@@ -1,7 +1,10 @@
-jupyter
-pandas
-numpy
-scikit-learn
-joblib
-matplotlib
-openpyxl
+# scikit-learn, joblib, numpy and pandas must match ml-service/requirements.txt so the
+# exported model loads in the ML service.
+scikit-learn==1.9.1
+joblib==1.6.0
+numpy==2.5.3
+pandas==3.0.6
+matplotlib==3.11.2
+openpyxl==3.1.5
+jupyter==1.1.1
+nbconvert==7.17.1
