@@ -263,6 +263,12 @@ class ApiFlowIntegrationTest {
         postJson("/api/auth/login", null, credentials(email.toUpperCase()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isNotEmpty());
+
+        // 40 emoji = 40 characters but 160 bytes: rejected cleanly instead of a BCrypt 500
+        postJson("/api/auth/register", null, "{\"email\": \"" + uniqueEmail() + "\", \"password\": \""
+                + "\uD83D\uDE00".repeat(40) + "\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.passwordWithinBcryptLimit").exists());
     }
 
     private String register(String email) throws Exception {
