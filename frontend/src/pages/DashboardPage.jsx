@@ -101,7 +101,7 @@ function CourseCard({ course, studiedMinutes }) {
         <GradeMeter projection={course.projection} compact />
       </div>
       {studiedMinutes != null && (
-        <p className="mt-2 text-xs text-ink-2">Studied this week: {hoursMinutes(studiedMinutes)}</p>
+        <p className="mt-2 text-xs text-ink-2">Studied in the last 7 days: {hoursMinutes(studiedMinutes)}</p>
       )}
       <div className="mt-4 border-t border-line pt-3">
         {course.loadError ? (

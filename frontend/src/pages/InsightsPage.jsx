@@ -137,10 +137,15 @@ export default function InsightsPage() {
           })}
         </ul>
         <p className="mt-4 text-sm leading-relaxed text-ink-2">
-          <strong className="text-ink">In one sentence:</strong> a weak midterm, late assignments and missed classes are
-          the warning signs, and lots of late-night studying tips a borderline student over the edge. The model never
-          uses sleep, study hours, flashcards or quiz scores, so tips about those in the app are general study advice,
-          not reasons a course was flagged.
+          <strong className="text-ink">In one sentence:</strong> the strongest warning signs are{' '}
+          {joinList(importances.slice(0, 3).map(([name]) => (RULE_LABELS[name] ?? name).replace(/^the /, '')))}.
+          {info.unused_features?.length > 0 && (
+            <>
+              {' '}The model never uses{' '}
+              {joinList(info.unused_features.map((f) => (FEATURE_LABELS[f] ?? f).toLowerCase()))}, so tips about those in
+              the app are general study advice, not reasons a course was flagged.
+            </>
+          )}
         </p>
       </section>
 
@@ -150,6 +155,11 @@ export default function InsightsPage() {
       </p>
     </div>
   )
+}
+
+/** ["a", "b", "c"] -> "a, b and c" */
+function joinList(items) {
+  return items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
 }
 
 function Stat({ label, value, note }) {
