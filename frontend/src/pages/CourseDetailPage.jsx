@@ -134,7 +134,16 @@ export default function CourseDetailPage() {
           )}
           <ul className="space-y-3">
             {items?.map((item) => (
-              <ItemRow key={item.id} item={item} onRated={onRated} />
+              <ItemRow
+                key={item.id}
+                item={item}
+                onRated={onRated}
+                onChanged={() => {
+                  refreshItems()
+                  refreshProjection()
+                  if (recommendation) setStale(true)
+                }}
+              />
             ))}
           </ul>
           <AddItemForm
