@@ -90,6 +90,7 @@ class GeminiLiveTest {
                 52,
                 61L,
                 35,
+                "88% average on the remaining work",
                 2,
                 2,
                 List.of(

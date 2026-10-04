@@ -5,6 +5,7 @@ What we know:
 - Projected final grade: {{projected_final}}
 - Current grade on work graded so far: {{current_grade}}
 - Share of the grade still ahead: {{remaining_pct}}%
+- Needed for a C: {{required_for_c}}
 - Items the student rated as low-confidence: {{low_ratings}} of {{rated_items}} rated
 
 Reasoning bullets to rewrite:

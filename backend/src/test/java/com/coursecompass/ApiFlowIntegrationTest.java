@@ -123,6 +123,9 @@ class ApiFlowIntegrationTest {
                 .andExpect(jsonPath("$.explanation.reasoning", hasSize(3)))
                 .andExpect(jsonPath("$.signals.remainingWeight").value(0.35))
                 .andExpect(jsonPath("$.signals.lowRatings").value(2))
+                // Earned 25*0.55 + 40*0.70 = 41.75; a C needs (70 - 41.75) / 0.35 = 80.7% on what's left
+                .andExpect(jsonPath("$.signals.requiredScore").value(80.7))
+                .andExpect(jsonPath("$.reasoning[2]", containsString("81% on the remaining 35%")))
                 .andExpect(jsonPath("$.advisorNote").value("Talk to your advisor before withdrawing."))
                 .andExpect(jsonPath("$.disclaimer", containsString("not a verdict")));
     }

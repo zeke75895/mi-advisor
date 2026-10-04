@@ -62,6 +62,7 @@ public class ExplanationService {
             long projectedFinal,
             Long currentGrade,
             long remainingPct,
+            String requiredForC,
             int lowRatings,
             int ratedItems,
             List<String> reasoning,
@@ -106,6 +107,7 @@ public class ExplanationService {
         values.put("projected_final", Long.toString(in.projectedFinal()));
         values.put("current_grade", in.currentGrade() == null ? "nothing graded yet" : in.currentGrade().toString());
         values.put("remaining_pct", Long.toString(in.remainingPct()));
+        values.put("required_for_c", in.requiredForC());
         values.put("low_ratings", Integer.toString(in.lowRatings()));
         values.put("rated_items", Integer.toString(in.ratedItems()));
         values.put("reasoning_bullets", bullets(in.reasoning()));

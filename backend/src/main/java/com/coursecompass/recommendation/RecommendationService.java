@@ -59,6 +59,8 @@ public class RecommendationService {
                 p.currentGrade() == null ? null : Math.round(p.currentGrade() * 10) / 10.0,
                 round(p.remainingWeight()),
                 round(p.coveredWeight()),
+                oneDecimal(p.requiredScore()),
+                Math.round(p.maxPossible() * 10) / 10.0,
                 courseItems.size(),
                 ratings.size());
     }
@@ -90,6 +92,9 @@ public class RecommendationService {
                 risk.isAtRisk(),
                 projection.projectedFinal(),
                 projection.remainingWeight(),
+                projection.currentGrade(),
+                projection.requiredScore(),
+                projection.maxPossible(),
                 ratings.values()));
 
         Explanation explanation = explanationService.explain(new ExplanationInput(
@@ -99,6 +104,7 @@ public class RecommendationService {
                 Math.round(projection.projectedFinal()),
                 projection.currentGrade() == null ? null : Math.round(projection.currentGrade()),
                 Math.round(projection.remainingWeight() * 100),
+                requiredText(projection),
                 result.lowRatings(),
                 ratings.size(),
                 result.reasoning(),
@@ -120,6 +126,8 @@ public class RecommendationService {
                         projection.currentGrade() == null ? null : Math.round(projection.currentGrade() * 10) / 10.0,
                         round(projection.remainingWeight()),
                         round(projection.coveredWeight()),
+                        oneDecimal(projection.requiredScore()),
+                        Math.round(projection.maxPossible() * 10) / 10.0,
                         result.distressRatio(),
                         result.lowRatings(),
                         ratings.size()),
@@ -134,6 +142,24 @@ public class RecommendationService {
         return GradeProjector.project(courseItems.stream()
                 .map(i -> new ItemInput(i.getWeight(), i.isGraded(), i.percentScore(), ratings.get(i.getId())))
                 .toList());
+    }
+
+    /** The "score needed for a C" in the words the Gemini prompt uses. */
+    static String requiredText(Projection p) {
+        if (p.requiredScore() == null) {
+            return "nothing is left to grade";
+        }
+        if (p.requiredScore() <= 0) {
+            return "a C is already secured";
+        }
+        if (p.requiredScore() > 100) {
+            return "a C is no longer reachable (best possible final grade: " + (long) Math.floor(p.maxPossible()) + ")";
+        }
+        return (long) Math.ceil(p.requiredScore()) + "% average on the remaining work";
+    }
+
+    private static Double oneDecimal(Double value) {
+        return value == null ? null : Math.round(value * 10) / 10.0;
     }
 
     private static double round(double value) {

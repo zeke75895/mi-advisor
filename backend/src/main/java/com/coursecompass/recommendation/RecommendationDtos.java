@@ -15,6 +15,8 @@ public final class RecommendationDtos {
             Double currentGrade,
             double remainingWeight,
             double coveredWeight,
+            Double requiredScore,
+            double maxPossible,
             double distressRatio,
             int lowRatings,
             int ratedItems) {}
@@ -26,6 +28,8 @@ public final class RecommendationDtos {
             Double currentGrade,
             double remainingWeight,
             double coveredWeight,
+            Double requiredScore,
+            double maxPossible,
             int itemCount,
             int ratedItems) {}
 

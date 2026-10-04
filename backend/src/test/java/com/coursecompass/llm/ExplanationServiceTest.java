@@ -28,6 +28,7 @@ class ExplanationServiceTest {
             58,
             67L,
             35,
+            "88% average on the remaining work",
             1,
             2,
             List.of(
