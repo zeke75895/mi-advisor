@@ -1,6 +1,5 @@
 package com.coursecompass.recommendation;
 
-import com.coursecompass.common.ConflictException;
 import com.coursecompass.course.CourseService;
 import com.coursecompass.item.GradedItem;
 import com.coursecompass.item.GradedItemRepository;
@@ -17,6 +16,7 @@ import com.coursecompass.risk.RiskScore;
 import com.coursecompass.risk.RiskService;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -63,22 +63,26 @@ public class RecommendationService {
                 ratings.size());
     }
 
-    // Not @Transactional: each read runs in its own short transaction so the Gemini call below
-    // doesn't hold a database connection open.
-    public RecommendationResponse recommend(Long userId, Long courseId) {
+    /**
+     * Empty until the course has a risk prediction, graded items, and at least one graded or rated item:
+     * that's a normal "not ready yet" state for a new course, not an error.
+     *
+     * <p>Not @Transactional: each read runs in its own short transaction so the Gemini call below
+     * doesn't hold a database connection open.
+     */
+    public Optional<RecommendationResponse> recommend(Long userId, Long courseId) {
         courseService.getOwned(userId, courseId);
 
-        RiskScore risk = riskService.latest(courseId).orElseThrow(() -> new ConflictException(
-                "No risk prediction yet. Call POST /api/courses/" + courseId + "/predict first."));
-
+        Optional<RiskScore> latestRisk = riskService.latest(courseId);
         List<GradedItem> courseItems = items.findByCourseIdOrderByDueDateAscIdAsc(courseId);
-        if (courseItems.isEmpty()) {
-            throw new ConflictException("Add the course's graded items from the syllabus first.");
+        if (latestRisk.isEmpty() || courseItems.isEmpty()) {
+            return Optional.empty();
         }
+        RiskScore risk = latestRisk.get();
         Map<Long, Integer> ratings = ratingService.latestRatingsForCourse(courseId);
         Projection projection = project(courseItems, ratings);
         if (projection.projectedFinal() == null) {
-            throw new ConflictException("Grade or self-rate at least one item to project a final grade.");
+            return Optional.empty();
         }
 
         FusionService.Result result = fusion.compute(new FusionService.Inputs(
@@ -100,7 +104,7 @@ public class RecommendationService {
                 result.reasoning(),
                 result.actions()));
 
-        return new RecommendationResponse(
+        return Optional.of(new RecommendationResponse(
                 courseId,
                 result.recommendation(),
                 result.confidence(),
@@ -123,7 +127,7 @@ public class RecommendationService {
                 result.recommendation().isWithdraw() ? ADVISOR_NOTE : null,
                 DISCLAIMER,
                 risk.getModelVersion(),
-                risk.getComputedAt());
+                risk.getComputedAt()));
     }
 
     private static Projection project(List<GradedItem> courseItems, Map<Long, Integer> ratings) {

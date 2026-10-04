@@ -202,12 +202,12 @@ class ApiFlowIntegrationTest {
     }
 
     @Test
-    void recommendationBeforePredictIsConflict() throws Exception {
+    void recommendationBeforePredictIsNoContent() throws Exception {
         String token = register(uniqueEmail());
         long courseId = createCourse(token);
 
         mvc.perform(get("/api/courses/" + courseId + "/recommendation").header("Authorization", bearer(token)))
-                .andExpect(status().isConflict());
+                .andExpect(status().isNoContent());
     }
 
     @Test
