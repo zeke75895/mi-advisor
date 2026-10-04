@@ -30,6 +30,7 @@ def test_predict_flags_struggling_student() -> None:
     assert body["top_features"][0]["name"] == "midterm_score"
     assert body["explanation"].startswith("The model flagged this course as at risk. It checked:")
     assert "not a verdict" in body["disclaimer"]
+    assert "missed 23% of at-risk students" in body["disclaimer"]  # test recall 0.773
 
 
 def test_predict_not_at_risk() -> None:

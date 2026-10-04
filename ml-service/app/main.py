@@ -11,10 +11,17 @@ from pydantic import BaseModel, Field
 from app.model import RiskModel
 
 MODEL_DIR = Path(os.getenv("MODEL_DIR", Path(__file__).resolve().parent.parent / "models"))
-DISCLAIMER = (
-    "This is guidance, not a verdict. The model was trained on synthetic data and misses "
-    "about 1 in 5 at-risk students. Talk to your advisor before making any decision about a course."
-)
+
+
+def disclaimer(model: RiskModel) -> str:
+    """Built from the model's measured test recall, so it stays accurate after retraining."""
+    recall = model.config["metrics"]["recall_at_risk"]
+    return (
+        "This is guidance, not a verdict. The model was trained on synthetic data and, in testing, "
+        f"missed {round((1 - recall) * 100)}% of at-risk students. "
+        "Talk to your advisor before making any decision about a course."
+    )
+
 
 state: dict[str, RiskModel] = {}
 
@@ -110,9 +117,9 @@ def predict(req: PredictRequest) -> dict[str, Any]:
         result = state["model"].predict(req.model_dump())
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
-    return {**result, "disclaimer": DISCLAIMER}
+    return {**result, "disclaimer": disclaimer(state["model"])}
 
 
 @app.get("/model-info")
 def model_info() -> dict[str, Any]:
-    return {**state["model"].info(), "disclaimer": DISCLAIMER}
+    return {**state["model"].info(), "disclaimer": disclaimer(state["model"])}
