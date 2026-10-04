@@ -34,6 +34,18 @@ export function letterGrade(score) {
 
 export const pct = (fraction) => `${Math.round(fraction * 100)}%`
 
+/** The browser's local date as YYYY-MM-DD. */
+export function localDate(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/** 95 -> "1h 35m", 45 -> "45m", 0 -> "0m" */
+export function hoursMinutes(minutes) {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return h ? `${h}h${m ? ` ${m}m` : ''}` : `${m}m`
+}
+
 export const RECOMMENDATION_TONE = {
   strong_stay: 'good',
   lean_stay: 'good',

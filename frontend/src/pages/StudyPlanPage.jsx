@@ -3,11 +3,7 @@ import { courseApi, studyApi } from '../api/client'
 import AiLabel from '../components/AiLabel'
 import Field, { Button, ErrorBanner, Loading, inputClass } from '../components/Field'
 import useAsync from '../lib/useAsync'
-
-function localDate() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
+import { localDate } from '../lib/format'
 
 export default function StudyPlanPage() {
   const courseList = useAsync(() => courseApi.list(), [])

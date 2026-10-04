@@ -81,15 +81,11 @@ export const courseApi = {
     form.append('file', file)
     return api(`/api/courses/${courseId}/notes/pdf`, { method: 'POST', body: form })
   },
-  /** Resolves to null when the course has no prediction yet (409) instead of throwing. */
-  recommendation: async (courseId) => {
-    try {
-      return await api(`/api/courses/${courseId}/recommendation`)
-    } catch (e) {
-      if (e.status === 409) return null
-      throw e
-    }
-  },
+  /** null (204) until the course has a risk check and at least one graded or rated item. */
+  recommendation: (courseId) => api(`/api/courses/${courseId}/recommendation`),
+  updateItem: (itemId, item) => api(`/api/items/${itemId}`, { method: 'PUT', body: item }),
+  deleteItem: (itemId) => api(`/api/items/${itemId}`, { method: 'DELETE' }),
+  extractItems: (courseId) => api(`/api/courses/${courseId}/notes/extract-items`, { method: 'POST' }),
 }
 
 // Generation uses the course's saved notes, so the request body is empty.
@@ -100,6 +96,15 @@ export const studyApi = {
   latestQuestions: (courseId) => api(`/api/materials/${courseId}/questions`),
   plan: (body) => api('/api/study-plan/generate', { method: 'POST', body }),
   latestPlan: () => api('/api/study-plan/latest'),
+}
+
+// "today" is the browser's local date so weeks match the student's calendar.
+export const sessionApi = {
+  log: (courseId, session, today) =>
+    api(`/api/courses/${courseId}/study-sessions?today=${today}`, { method: 'POST', body: session }),
+  courseLog: (courseId, today) => api(`/api/courses/${courseId}/study-sessions?today=${today}`),
+  summary: (today) => api(`/api/study-sessions/summary?today=${today}`),
+  remove: (sessionId) => api(`/api/study-sessions/${sessionId}`, { method: 'DELETE' }),
 }
 
 export const modelApi = {
