@@ -70,6 +70,7 @@ returned as RFC 7807 problem JSON (validation errors include an `errors` map).
 | `GET /api/materials/{courseId}/flashcards`, `.../questions` | Latest saved flashcard set / quiz |
 | `POST /api/study-plan/generate` | 7-day plan from deadlines in the next 14 days and items rated 4/10 or lower (`{"startDate", "hoursPerDay", "courseIds", "timeZone"}`, all optional) |
 | `GET /api/study-plan/latest` | Latest saved plan |
+| `GET /api/model-info` | Model metrics, confusion matrix, importances and tree rules (from the ML service, cached) |
 
 "Latest" endpoints return 204 when nothing is saved yet. Everything a student enters
 or generates is stored in Postgres, so it follows them across devices.
@@ -131,7 +132,9 @@ Pages: login/register, dashboard (course cards with risk level, projected grade 
 recommendation), course detail (graded items with 1–10 confidence sliders, projected
 grade meter, weekly check-in → risk check, recommendation card), flashcards (flip
 cards) and practice quiz per course, a 7-day study plan, and PDF upload (text is extracted into the course notes;
-deadlines and weights are still entered by hand). Everything Gemini writes is labeled "AI-generated". Set `VITE_API_BASE_URL` to point at the backend.
+deadlines and weights are still entered by hand). Everything Gemini writes is labeled "AI-generated". A Model Insights page shows
+the confusion matrix, feature importances and the tree's rules in plain English, and every
+risk and recommendation card carries a Responsible AI panel with the model's live recall. Set `VITE_API_BASE_URL` to point at the backend.
 `vercel.json` rewrites all routes to `index.html` for client-side routing.
 
 ### 5. Train the model
@@ -152,3 +155,9 @@ Run in order:
    test-set evaluation, feature importances, and exports
    `ml-service/models/tree_v1.joblib` + `model_config.json`. Charts are saved
    to `notebooks/figures/`.
+
+## Demo
+
+- Script: [`docs/demo-script.md`](docs/demo-script.md) (3 minutes, with a numbers cheat sheet and fallbacks)
+- Seed a demo account: `python scripts/seed_demo.py` (prints the login; all data is synthetic)
+- Sample syllabus to upload: [`docs/demo/ch101-syllabus.pdf`](docs/demo/ch101-syllabus.pdf)
