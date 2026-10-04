@@ -8,6 +8,23 @@ recommendation → study plan + flashcards.
 > All data is synthetic. Risk outputs are guidance, not a verdict. Talk to your
 > advisor before withdrawing from a course.
 
+## The model at a glance
+
+Decision tree (depth 3) trained on the WolfHacks synthetic dataset (800 students, 28% at risk),
+evaluated on a stratified 20% hold-out (160 students):
+
+| | Majority-class baseline | Decision tree |
+|---|---|---|
+| Accuracy | 72.5% | 79.4% |
+| Recall on at-risk | 0% | **77.3%** (34 of 44) |
+| ROC-AUC | 0.50 | 0.87 |
+
+Depth chosen by repeated cross-validation on training data only; train vs test accuracy
+86.1% vs 79.4%. Top features: midterm score, on-time submissions, attendance, late-night
+studying. Full walkthrough with confusion matrix, importances, the tree diagram and an
+overfitting discussion: [`notebooks/02_train_evaluate.ipynb`](notebooks/02_train_evaluate.ipynb).
+The app's Model Insights page shows the same numbers live.
+
 ## Repo layout
 
 | Path          | Stack                               | Deploy  |
@@ -168,3 +185,25 @@ Run in order:
 - Script: [`docs/demo-script.md`](docs/demo-script.md) (3 minutes, with a numbers cheat sheet and fallbacks)
 - Seed a demo account: `python scripts/seed_demo.py` (prints the login; all data is synthetic)
 - Sample syllabus to upload: [`docs/demo/ch101-syllabus.pdf`](docs/demo/ch101-syllabus.pdf)
+
+## Deploying
+
+| Service | Where | Setup |
+|---|---|---|
+| Postgres | Tiger Data or Railway Postgres | Create a database and copy its host, port, name, user and password |
+| ML service | Railway, from `ml-service/Dockerfile` | No env vars needed; Railway sets `PORT` |
+| Backend | Railway, from `backend/Dockerfile` | Env vars below |
+| Frontend | Vercel, root directory `frontend` | `VITE_API_BASE_URL=https://<backend-url>` |
+
+Backend environment variables:
+
+- `DATABASE_URL` must be a **JDBC** URL: `jdbc:postgresql://<host>:<port>/<db>?sslmode=require`.
+  Providers usually show `postgres://user:pass@host:port/db`; convert it and put the user and
+  password in `DATABASE_USERNAME` and `DATABASE_PASSWORD`.
+- `JWT_SECRET`: required (`openssl rand -base64 48`). Without it, logins reset on every restart.
+- `ML_SERVICE_URL`: the ML service's Railway URL.
+- `CORS_ALLOWED_ORIGINS`: your Vercel URL, e.g. `https://coursecompass.vercel.app`.
+- `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, `AI_USER_LIMIT`).
+
+Tables are created automatically on first start (`spring.jpa.hibernate.ddl-auto=update`).
+
