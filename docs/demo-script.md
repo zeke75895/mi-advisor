@@ -1,109 +1,103 @@
 # MiAdvisor: 3-minute demo script
 
 For the presenters. **Bold** lines are what you say; *italics* are what you click. Times are
-targets, and the whole run fits in 3:00 with about 15 seconds of slack.
+targets, and the whole run fits in 3:00 with about 10 seconds of slack. Everything runs locally
+on the presenting laptop.
 
 ## Before you present (10 minutes ahead)
 
-1. Start everything: `docker compose up -d`, the ML service, the backend (with `GEMINI_API_KEY` in
-   `.env`), and the frontend. Check `/health` on the backend and ML service.
+1. Start everything (see "Running it locally" in the README): `docker compose up -d`, the ML
+   service, the backend (`set -a; source .env; set +a` first, so `GEMINI_API_KEY` and
+   `ELEVENLABS_API_KEY` load), and the frontend. Check `/health` on ports 8000 and 8080.
 2. Seed a fresh demo account:
    ```bash
-   python scripts/seed_demo.py --email demo-$(date +%H%M)@miadvisor.app
+   python3 scripts/seed_demo.py --email demo-$(date +%H%M)@miadvisor.app
    ```
    Note the email it prints. The password is `wolfhacks-demo-2026`.
-3. Log in once, open **CH 101** and **Insights**, then go back to the dashboard. This warms the
-   caches so nothing loads slowly on stage.
+3. Log in once, open **MA 241** and **Insights**, then go back to the dashboard. This warms the
+   caches so nothing loads slowly on stage. On MA 241, click **🔊 Listen to your briefing** once
+   to confirm the voice works; replays are free.
 4. Have these open in tabs: the app (logged in, on the dashboard), `notebooks/02_train_evaluate.ipynb`
    scrolled to the confusion matrix, and `docs/demo/ch101-syllabus.pdf` in Finder for the upload.
-5. Zoom the browser to 110–125% so the room can read it.
+5. Zoom the browser to 110–125% so the room can read it, and turn the laptop volume up for the
+   briefing.
 
-Don't rate CH 101's items or press "Predict risk" while warming up. Those are the live moments.
+Don't rate CH 101's items, press "Predict risk" or play CH 101's briefing while warming up. Those
+are the live moments.
 
 ---
 
-## 0:00–0:20 · The problem
+## 0:00–0:15 · The problem
 
-**"In the WolfHacks student dataset, more than 1 in 4 students (28%) finished their course with a D
-or F. Often, by the time the grade shows up, the withdrawal deadline has passed. Students have to decide whether to stay or drop with almost no
-information."**
-
-**"MiAdvisor gives them that information early: a risk prediction from a decision tree, their
-own sense of how each exam went, and the syllabus weights, combined into one clear recommendation."**
+**"In the WolfHacks dataset, more than 1 in 4 students (28%) finished with a D or F, and often the
+withdrawal deadline had already passed by the time the grade showed up. MiAdvisor tells students
+early, explains why, and helps them decide whether to stay or withdraw."**
 
 *Show the dashboard.* **"Here's Jordan's semester. Calculus is on track. Chemistry looks
 worrying."**
 
-## 0:20–0:45 · Upload the syllabus
+## 0:15–0:35 · Upload the syllabus
 
 *Click **Upload** → choose **CH 101** → drag in `ch101-syllabus.pdf` → **Upload and extract text**.*
 
-**"Jordan uploads the chemistry syllabus. We pull the text out of the PDF and save it to the
-course."** (It shows "Saved 2,275 characters".)
-
-**"That text now powers AI flashcards and practice quizzes. Every piece of AI-generated content is
-labeled."** *(Optional, only if you're ahead of time: click **Make flashcards** and flip one card.)*
+**"Jordan uploads the chemistry syllabus. That text powers Gemini-generated flashcards and
+practice quizzes, and every piece of AI content is labeled."**
 
 *Click **Course page**.*
 
-## 0:45–1:25 · Rate how it went
+## 0:35–1:05 · Rate how it went
 
-**"These are the graded items from the syllabus, with their weights. Jordan got a 58 on the
+**"These are the graded items, with their weights from the syllabus. Jordan got a 58 on the
 midterm."**
 
 *Drag **Final Exam** confidence to **3**, **Midterm** to **4**, **Lab reports** to **4**.*
 
-**"Right after each exam, Jordan rates how confident they feel. Watch the projected grade: it
-combines actual scores with those ratings, weighted by the syllabus. It just dropped from 63 to
-55, which is below a C. And underneath, from Jordan's real grades: to finish with a C they'd need
-an average of 92% on the 25% of the grade that's left."**
+**"After each exam, Jordan rates how confident they feel. The projected grade combines real scores
+with those ratings: it just dropped from 63 to 55, below a C. To finish with a C, they'd need 92%
+on the 25% of the grade that's left."**
 
-**"The weekly check-in (attendance, on-time submissions, late-night studying) is already filled in
-from last week."** *Scroll to it and click **Predict risk**.*
+*Scroll to the weekly check-in (already filled in) and click **Predict risk**.*
 
-## 1:25–2:05 · The recommendation
+## 1:05–1:40 · The recommendation
 
 *Point at the **Risk check** card.*
 
-**"The decision tree says high risk, and it says why in plain English: midterm at or below 64.5,
-on-time submissions at or below 79.5%, attendance at or below 94.5%. That's the exact path through the tree for
-Jordan. It isn't a generic explanation."**
+**"The decision tree says high risk, and shows Jordan's exact path through the tree: midterm at
+or below 64.5, on-time submissions at or below 79.5%, attendance at or below 94.5%."**
 
 *Point at the recommendation card.*
 
-**"Now the fusion. The model's risk, a projected grade of 55, needing 92% on the final quarter of
-the grade (a steep climb from the 63% Jordan has averaged so far), and three low-confidence ratings
-add up to a strong signal to consider withdrawing. Every reason agrees with the headline. Gemini
-rewrites the reasons in supportive language, and it's labeled AI-generated."**
+**"We combine the model's risk, the projected 55, the steep 92% climb and three low ratings into
+one recommendation: a strong signal to consider withdrawing. Gemini rewrites the reasons in
+supportive language, labeled AI-generated, and it can't add numbers that aren't in the data."**
 
-*Point at the **Responsible AI** panel.*
+## 1:40–2:10 · Listen to the briefing
 
-**"And every card says it: this is guidance, not a verdict. The model was trained on synthetic data
-and catches 77% of at-risk students. And always talk to your advisor before withdrawing."**
+*Click **🔊 Listen to your briefing** (it takes about 5 seconds to prepare). Let it play for
+about 15 seconds, then pause.*
 
-## 2:05–2:40 · The model
+**"Not every student wants to read a risk report at midnight. Gemini writes a 30-second briefing
+from the same data, and ElevenLabs reads it in a calm, supportive voice. The ending is added by
+our code, not the AI: this is guidance, not a verdict, and talk to your advisor before
+withdrawing."**
+
+*Open **Read the transcript** to show it matches the card.*
+
+## 2:10–2:40 · The model
 
 *Click **Insights** (use the notebook tab if a judge wants the code).*
 
-**"The model is a depth-3 decision tree trained on the WolfHacks dataset with an 80/20 stratified
-split. A baseline that calls everyone 'fine' gets 72.5% accuracy but catches zero at-risk
-students. Our tree catches 77%, that's 34 of 44 in the held-out test set, at 79.4% accuracy and
-0.87 ROC-AUC."**
-
-*Point at the confusion matrix, then the importances.*
-
-**"We tuned for recall because missing a struggling student costs more than a false alarm. Midterm
-score drives 59% of the decisions, then on-time submissions and attendance. We chose depth 3 by
-repeated cross-validation. Train and test accuracy are only 6.7 points apart, so it isn't
-overfitting, and it's small enough to explain to a student."**
+**"A baseline that calls everyone 'fine' gets 72.5% accuracy but catches zero at-risk students.
+Our depth-3 tree catches 77%, 34 of 44 in the held-out test set, at 79.4% accuracy and 0.87
+ROC-AUC. We tuned for recall because missing a struggling student costs more than a false alarm.
+Midterm score drives 59% of the decisions, and train and test accuracy are only 6.7 points apart,
+so it isn't overfitting."**
 
 ## 2:40–3:00 · Impact
 
-**"Most tools show a dashboard or a model. MiAdvisor connects them: the model says risk, you
-say the midterm felt bad, the syllabus says what's left, and we turn that into a decision before
-the deadline, plus flashcards, a quiz and a 7-day study plan if you stay."**
-
-**"It's guidance, not a verdict. Thank you."**
+**"MiAdvisor connects the model, the student's own sense of how it's going, and the syllabus, and
+turns them into a decision before the deadline, with a voice briefing, flashcards, a quiz and a
+study plan if they stay. It's guidance, not a verdict. Thank you."**
 
 ---
 
@@ -119,12 +113,17 @@ the deadline, plus flashcards, a quiz and a 7-day study plan if you stay."**
 | Top features | Midterm 59% · on-time submissions 22% · attendance 11% · late-night studying 8% |
 | Biggest at-risk path | Midterm ≤ 64.5, on-time ≤ 79.5%, attendance ≤ 94.5%: 110 of 139 training students were at risk |
 | Demo course (CH 101) | Projected 63 → 55 after rating; needs 92% on the remaining 25% for a C (63% average so far); strong withdraw signal |
+| Voice briefing | About 25–30 seconds; Gemini script (`gemini-3.5-flash-lite`), ElevenLabs voice "Sarah" (`eleven_multilingual_v2`) |
 
 ## If something goes wrong
 
-- **Gemini is slow or down:** the recommendation automatically falls back to the built-in wording
-  (no "AI-generated" label). Say "the explanation falls back to our template if the LLM is
-  unavailable" and keep going.
+- **Gemini is slow or down:** the recommendation and briefing fall back to built-in template
+  wording (the recommendation loses its "AI-generated" label). Say "it falls back to our template
+  if the LLM is unavailable" and keep going.
+- **The briefing button is missing:** the backend didn't load `ELEVENLABS_API_KEY`. Skip the
+  briefing and play MA 241's briefing later if there's time, or describe it.
+- **"The voice briefing didn't work this time":** ElevenLabs credits or network. Click once more;
+  if it fails again, open MA 241 and play the briefing you warmed up (replays are cached).
 - **"You've used 10 AI generations…":** that's the per-user cap protecting the free tier. Skip the
   flashcards step, or seed a new account.
 - **ML service down:** "Predict risk" shows an error. Use the Insights page and the notebook for
@@ -147,4 +146,10 @@ the deadline, plus flashcards, a quiz and a 7-day study plan if you stay."**
   is out of reach, and the app never recommends staying in that case.
 - **Is the probability a real percentage?** No. The tree's leaf probabilities aren't calibrated, so
   the UI only shows high, moderate or low.
-- **Privacy?** Only aggregate signals go to Gemini (no names or emails), and data is never shared.
+- **How do you stop the AI making things up?** Gemini only rewords decisions made by the tree and
+  our rules. Any output that adds a number not in its input is rejected and replaced by template
+  text, and the voice briefing's disclaimer is appended by code.
+- **Why a voice briefing?** It's more accessible, and a calm voice lands better than a red badge
+  when the news is bad. The transcript is always one click away.
+- **Privacy?** Only course names and aggregate grade and risk figures go to Gemini and ElevenLabs
+  (no names or emails), and data is never shared.
