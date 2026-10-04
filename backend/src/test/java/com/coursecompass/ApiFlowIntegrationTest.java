@@ -6,8 +6,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -208,6 +210,43 @@ class ApiFlowIntegrationTest {
 
         mvc.perform(get("/api/courses/" + courseId + "/recommendation").header("Authorization", bearer(token)))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void gradedItemsCanBeEditedAndDeleted() throws Exception {
+        String token = register(uniqueEmail());
+        long courseId = createCourse(token);
+        long itemId = id(postJson("/api/courses/" + courseId + "/items", token, """
+                {"name": "Exam 2", "category": "EXAM", "weight": 20, "pointsPossible": 100}
+                """));
+        postJson("/api/items/" + itemId + "/rating", token, "{\"rating\": 6}").andExpect(status().isCreated());
+
+        // The grade comes back: mark it graded
+        mvc.perform(put("/api/items/" + itemId).header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON).content("""
+                        {"name": "Exam 2", "category": "EXAM", "weight": 25, "pointsPossible": 100,
+                         "pointsEarned": 81, "isGraded": true}
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isGraded").value(true))
+                .andExpect(jsonPath("$.weight").value(25.0))
+                .andExpect(jsonPath("$.latestRating").value(6));
+        mvc.perform(get("/api/courses/" + courseId + "/projection").header("Authorization", bearer(token)))
+                .andExpect(jsonPath("$.projectedFinal").value(81.0));
+
+        // Validation still applies, and other users can't touch it
+        mvc.perform(put("/api/items/" + itemId).header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"Exam 2\", \"category\": \"EXAM\", \"weight\": 25, \"isGraded\": true}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(delete("/api/items/" + itemId).header("Authorization", bearer(register(uniqueEmail()))))
+                .andExpect(status().isNotFound());
+
+        // Deleting removes the item and its ratings
+        mvc.perform(delete("/api/items/" + itemId).header("Authorization", bearer(token)))
+                .andExpect(status().isNoContent());
+        mvc.perform(get("/api/courses/" + courseId + "/items").header("Authorization", bearer(token)))
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 
     @Test

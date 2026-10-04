@@ -4,6 +4,8 @@ import com.coursecompass.course.Course;
 import com.coursecompass.course.CourseService;
 import com.coursecompass.item.GradedItemDtos.GradedItemRequest;
 import com.coursecompass.item.GradedItemDtos.GradedItemResponse;
+import com.coursecompass.common.NotFoundException;
+import com.coursecompass.rating.SelfRatingRepository;
 import com.coursecompass.rating.SelfRatingService;
 import java.util.List;
 import java.util.Map;
@@ -16,12 +18,17 @@ public class GradedItemService {
     private final GradedItemRepository items;
     private final CourseService courseService;
     private final SelfRatingService ratingService;
+    private final SelfRatingRepository ratings;
 
     public GradedItemService(
-            GradedItemRepository items, CourseService courseService, SelfRatingService ratingService) {
+            GradedItemRepository items,
+            CourseService courseService,
+            SelfRatingService ratingService,
+            SelfRatingRepository ratings) {
         this.items = items;
         this.courseService = courseService;
         this.ratingService = ratingService;
+        this.ratings = ratings;
     }
 
     @Transactional(readOnly = true)
@@ -46,5 +53,36 @@ public class GradedItemService {
                 request.dueDate(),
                 request.graded()));
         return GradedItemResponse.from(item, null);
+    }
+
+    @Transactional
+    public GradedItemResponse update(Long userId, Long itemId, GradedItemRequest request) {
+        GradedItem item = owned(userId, itemId);
+        item.update(
+                request.name().trim(),
+                request.category(),
+                request.weight(),
+                request.pointsPossible(),
+                request.graded() ? request.pointsEarned() : null,
+                request.dueDate(),
+                request.graded());
+        Integer latest = ratings.findFirstByGradedItemIdOrderByCreatedAtDescIdDesc(itemId)
+                .map(r -> r.getRating())
+                .orElse(null);
+        return GradedItemResponse.from(item, latest);
+    }
+
+    /** Deletes the item and its self-ratings. */
+    @Transactional
+    public void delete(Long userId, Long itemId) {
+        GradedItem item = owned(userId, itemId);
+        ratings.deleteByGradedItemId(itemId);
+        items.delete(item);
+    }
+
+    private GradedItem owned(Long userId, Long itemId) {
+        return items.findById(itemId)
+                .filter(i -> i.getCourse().getUser().getId().equals(userId))
+                .orElseThrow(() -> new NotFoundException("Item " + itemId + " not found"));
     }
 }

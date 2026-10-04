@@ -70,6 +70,23 @@ public class GradedItem {
         this.graded = graded;
     }
 
+    public void update(
+            String name,
+            GradeCategory category,
+            Double weight,
+            Double pointsPossible,
+            Double pointsEarned,
+            OffsetDateTime dueDate,
+            boolean graded) {
+        this.name = name;
+        this.category = category;
+        this.weight = weight;
+        this.pointsPossible = pointsPossible;
+        this.pointsEarned = pointsEarned;
+        this.dueDate = dueDate;
+        this.graded = graded;
+    }
+
     /** Score as a percentage, or null if not graded yet. */
     public Double percentScore() {
         if (!graded || pointsEarned == null || pointsPossible == null || pointsPossible <= 0) {
