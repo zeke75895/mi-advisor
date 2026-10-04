@@ -86,6 +86,8 @@ export const courseApi = {
   updateItem: (itemId, item) => api(`/api/items/${itemId}`, { method: 'PUT', body: item }),
   deleteItem: (itemId) => api(`/api/items/${itemId}`, { method: 'DELETE' }),
   extractItems: (courseId) => api(`/api/courses/${courseId}/notes/extract-items`, { method: 'POST' }),
+  /** Spoken summary of the recommendation: script + base64 MP3. 503 when ElevenLabs isn't configured. */
+  briefing: (courseId) => api(`/api/courses/${courseId}/briefing`, { method: 'POST' }),
 }
 
 // Generation uses the course's saved notes, so the request body is empty.
@@ -105,6 +107,10 @@ export const sessionApi = {
   courseLog: (courseId, today) => api(`/api/courses/${courseId}/study-sessions?today=${today}`),
   summary: (today) => api(`/api/study-sessions/summary?today=${today}`),
   remove: (sessionId) => api(`/api/study-sessions/${sessionId}`, { method: 'DELETE' }),
+}
+
+export const featuresApi = {
+  get: () => api('/api/features'),
 }
 
 export const modelApi = {
