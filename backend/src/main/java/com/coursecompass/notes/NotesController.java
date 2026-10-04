@@ -23,9 +23,11 @@ import org.springframework.web.multipart.MultipartFile;
 public class NotesController {
 
     private final NotesService notesService;
+    private final SyllabusItemService syllabusItems;
 
-    public NotesController(NotesService notesService) {
+    public NotesController(NotesService notesService, SyllabusItemService syllabusItems) {
         this.notesService = notesService;
+        this.syllabusItems = syllabusItems;
     }
 
     /** 204 when the course has no notes yet. */
@@ -47,5 +49,11 @@ public class NotesController {
     public NotesResponse uploadPdf(
             @AuthenticationPrincipal Jwt jwt, @PathVariable Long courseId, @RequestParam("file") MultipartFile file) {
         return notesService.uploadPdf(CurrentUser.id(jwt), courseId, file);
+    }
+
+    /** Suggested graded items from the saved syllabus text, for the student to review before adding. */
+    @PostMapping("/extract-items")
+    public SyllabusItemService.ExtractionResponse extractItems(@AuthenticationPrincipal Jwt jwt, @PathVariable Long courseId) {
+        return syllabusItems.extract(CurrentUser.id(jwt), courseId);
     }
 }

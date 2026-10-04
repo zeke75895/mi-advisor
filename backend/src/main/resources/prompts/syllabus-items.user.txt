@@ -1,0 +1,7 @@
+Course: {{course}}
+
+List the graded components and their weights from this syllabus.
+
+<syllabus>
+{{syllabus}}
+</syllabus>
