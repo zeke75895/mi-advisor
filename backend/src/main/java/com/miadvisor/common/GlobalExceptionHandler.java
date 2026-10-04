@@ -4,6 +4,8 @@ import com.miadvisor.llm.GeminiException;
 import com.miadvisor.llm.GeminiNotConfiguredException;
 import com.miadvisor.llm.RateLimitException;
 import com.miadvisor.ml.MlServiceException;
+import com.miadvisor.voice.VoiceException;
+import com.miadvisor.voice.VoiceNotConfiguredException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -104,6 +106,17 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleGemini(GeminiException ex) {
         log.warn("Gemini generation failed: {}", ex.getMessage());
         return problem(HttpStatus.BAD_GATEWAY, "AI generation didn't work this time. Please try again.");
+    }
+
+    @ExceptionHandler(VoiceNotConfiguredException.class)
+    public ProblemDetail handleVoiceNotConfigured(VoiceNotConfiguredException ex) {
+        return problem(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    }
+
+    @ExceptionHandler(VoiceException.class)
+    public ProblemDetail handleVoice(VoiceException ex) {
+        log.warn("Voice briefing failed: {}", ex.getMessage());
+        return problem(HttpStatus.BAD_GATEWAY, "The voice briefing didn't work this time. Please try again.");
     }
 
     @ExceptionHandler(Exception.class)
