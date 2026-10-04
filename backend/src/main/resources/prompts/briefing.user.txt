@@ -1,0 +1,16 @@
+Write the spoken briefing for this course.
+
+Course: {{course_name}}
+Recommendation: {{recommendation}}
+Headline: {{headline}}
+Risk level from our prediction: {{risk_level}}
+Projected final grade: {{projected_final}}
+Current grade on graded work: {{current_grade}}
+Share of the grade still ahead: {{remaining_pct}}%
+What it takes to finish with a C: {{required_for_c}}
+
+Why (already shown to the student):
+{{reasoning_bullets}}
+
+Suggested actions:
+{{actions}}
