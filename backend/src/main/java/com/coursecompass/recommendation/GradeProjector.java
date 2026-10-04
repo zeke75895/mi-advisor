@@ -11,6 +11,9 @@ import java.util.List;
  *
  * <p>Weights are percentages of the final grade. If the student hasn't entered every syllabus item yet
  * (weights sum to less than 100), the missing weight is still ahead, so shares are measured against 100.
+ *
+ * <p>It also works out the score needed to pass from actual grades only: the average a student must get
+ * on everything still ahead to finish with a C. Self-ratings don't affect it.
  */
 public final class GradeProjector {
 
@@ -31,9 +34,21 @@ public final class GradeProjector {
      * @param currentGrade weighted average of graded items only, or null if nothing is graded
      * @param remainingWeight 0-1 share of the final grade not graded yet (including items not entered)
      * @param coveredWeight 0-1 share of the final grade that has a score (actual or self-rated)
+     * @param earnedPoints final-grade points already locked in by graded work (0-100 scale)
+     * @param requiredScore average % needed on all remaining work to finish at 70; null if nothing
+     *     remains. At or below 0 means a C is already secured; above 100 means a C is out of reach.
+     * @param maxPossible the best final grade still possible (100% on everything remaining)
      */
     public record Projection(
-            Double projectedFinal, Double currentGrade, double remainingWeight, double coveredWeight) {}
+            Double projectedFinal,
+            Double currentGrade,
+            double remainingWeight,
+            double coveredWeight,
+            double earnedPoints,
+            Double requiredScore,
+            double maxPossible) {}
+
+    public static final double PASSING_GRADE = 70.0;
 
     static final double FULL_GRADE = 100.0;
 
@@ -41,7 +56,7 @@ public final class GradeProjector {
         double enteredWeight = items.stream().mapToDouble(ItemInput::weight).sum();
         double totalWeight = Math.max(enteredWeight, FULL_GRADE);
         if (enteredWeight <= 0) {
-            return new Projection(null, null, 1.0, 0.0);
+            return new Projection(null, null, 1.0, 0.0, 0.0, PASSING_GRADE, 100.0);
         }
 
         double scoredWeight = 0;
@@ -60,10 +75,15 @@ public final class GradeProjector {
             }
         }
 
+        double remaining = (totalWeight - gradedWeight) / totalWeight;
+        double earned = gradedPoints / totalWeight;
         return new Projection(
                 scoredWeight > 0 ? scoredPoints / scoredWeight : null,
                 gradedWeight > 0 ? gradedPoints / gradedWeight : null,
-                (totalWeight - gradedWeight) / totalWeight,
-                scoredWeight / totalWeight);
+                remaining,
+                scoredWeight / totalWeight,
+                earned,
+                remaining > 0 ? (PASSING_GRADE - earned) / remaining : null,
+                earned + remaining * 100.0);
     }
 }

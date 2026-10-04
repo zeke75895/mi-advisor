@@ -67,6 +67,28 @@ class GradeProjectorTest {
     }
 
     @Test
+    void neededScoreComesFromActualGradesOnly() {
+        Projection p = GradeProjector.project(List.of(
+                new ItemInput(25, true, 55.0, null),
+                new ItemInput(40, true, 70.0, null),
+                new ItemInput(35, false, null, 3))); // the rating doesn't change what's needed
+
+        // Earned: 25*0.55 + 40*0.70 = 41.75 points; need (70 - 41.75) / 0.35 = 80.71% on the last 35%
+        assertThat(p.earnedPoints()).isCloseTo(41.75, within(1e-9));
+        assertThat(p.requiredScore()).isCloseTo(80.714, within(1e-3));
+        assertThat(p.maxPossible()).isCloseTo(76.75, within(1e-9));
+    }
+
+    @Test
+    void neededScoreFlagsSecuredAndImpossibleAndFinished() {
+        assertThat(GradeProjector.project(List.of(new ItemInput(80, true, 95.0, null), new ItemInput(20, false, null, null)))
+                .requiredScore()).isLessThanOrEqualTo(0); // 76 points already
+        assertThat(GradeProjector.project(List.of(new ItemInput(80, true, 50.0, null), new ItemInput(20, false, null, null)))
+                .requiredScore()).isGreaterThan(100); // 40 points, best possible 60
+        assertThat(GradeProjector.project(List.of(new ItemInput(100, true, 65.0, null))).requiredScore()).isNull();
+    }
+
+    @Test
     void returnsNullProjectionWhenNothingIsGradedOrRated() {
         Projection p = GradeProjector.project(List.of(new ItemInput(50, false, null, null)));
 
