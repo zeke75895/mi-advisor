@@ -57,20 +57,24 @@ returned as RFC 7807 problem JSON (validation errors include an `errors` map).
 | `POST /api/auth/register`, `POST /api/auth/login` | Returns a JWT |
 | `GET/POST /api/courses` | List / create the user's courses |
 | `GET/POST /api/courses/{id}/items` | Graded items (category, weight % of final grade, points, due date) |
+| `PUT/DELETE /api/items/{id}` | Edit a graded item (e.g. enter the score when it's back) or delete it with its ratings |
 | `POST /api/items/{id}/rating` | Self-rating 1-10 for an item (latest one counts) |
 | `POST /api/courses/{id}/predict` | Sends study-habit features to the ML service, stores a `RiskScore`. `midtermScore` can be omitted if the course has a graded exam named "Midterm" |
 | `GET /api/courses/{id}/projection` | Projected final grade from grades + self-ratings (works before any prediction) |
-| `GET /api/courses/{id}/recommendation` | Stay/withdraw recommendation from model risk + grade projection + self-ratings, with a Gemini-polished explanation |
+| `GET /api/courses/{id}/recommendation` | Stay/withdraw recommendation from model risk + grade projection + self-ratings, with a Gemini-polished explanation. 204 until the course has a risk check and a graded or rated item |
 
 | `GET/PUT /api/courses/{id}/notes` | The course's study notes (pasted text, up to 100,000 characters) |
 | `POST /api/courses/{id}/notes/pdf` | Upload a PDF (multipart `file`, ≤10 MB); its text becomes the course notes |
+| `POST /api/courses/{id}/notes/extract-items` | Suggested graded items (name, category, weight, date) from the syllabus text, via Gemini or a pattern-match fallback; the student reviews them before adding |
+| `POST/GET /api/courses/{id}/study-sessions` | Log study time / list sessions with weekly totals (`?today=YYYY-MM-DD`) |
+| `GET /api/study-sessions/summary`, `DELETE /api/study-sessions/{id}` | Last-7-days totals across courses / remove a session |
 | `GET /api/courses/{id}/risk/latest`, `GET /api/courses/{id}/check-in/latest` | Last risk check (with explanation) and last check-in answers |
 | `POST /api/materials/{courseId}/generate-flashcards` | 10 Q/A flashcards from `{"content": "..."}` or, if omitted, the saved notes. Labeled AI-generated |
 | `POST /api/materials/{courseId}/generate-questions` | 5 multiple-choice questions with answers and explanations (same input) |
 | `GET /api/materials/{courseId}/flashcards`, `.../questions` | Latest saved flashcard set / quiz |
 | `POST /api/study-plan/generate` | 7-day plan from deadlines in the next 14 days and items rated 4/10 or lower (`{"startDate", "hoursPerDay", "courseIds", "timeZone"}`, all optional) |
 | `GET /api/study-plan/latest` | Latest saved plan |
-| `GET /api/model-info` | Model metrics, confusion matrix, importances and tree rules (from the ML service, cached) |
+| `GET /api/model-info` | Model metrics, confusion matrix, importances and tree rules (from the ML service, cached for `ML_MODEL_INFO_TTL`, default 5 minutes) |
 
 "Latest" endpoints return 204 when nothing is saved yet. Everything a student enters
 or generates is stored in Postgres, so it follows them across devices.
