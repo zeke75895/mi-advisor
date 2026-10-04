@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { courseApi } from '../api/client'
+import { courseApi, sessionApi } from '../api/client'
+import useAsync from '../lib/useAsync'
 import AddCourseForm from '../components/AddCourseForm'
 import { ErrorBanner, Loading } from '../components/Field'
 import GradeMeter from '../components/GradeMeter'
 import RaiPanel from '../components/RaiPanel'
 import StatusBadge, { RiskBadge } from '../components/StatusBadge'
-import { RECOMMENDATION_TONE, riskLevel } from '../lib/format'
+import { RECOMMENDATION_TONE, hoursMinutes, localDate, riskLevel } from '../lib/format'
 
 async function loadCourse(course) {
   const [projection, recommendation] = await Promise.allSettled([
@@ -24,6 +25,8 @@ async function loadCourse(course) {
 export default function DashboardPage() {
   const [courses, setCourses] = useState(null)
   const [error, setError] = useState(null)
+  const study = useAsync(() => sessionApi.summary(localDate()), [])
+  const minutesByCourse = Object.fromEntries((study.data?.courses ?? []).map((c) => [c.courseId, c.last7DaysMinutes]))
 
   const load = useCallback(async () => {
     try {
@@ -46,6 +49,11 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold">Your courses</h1>
           <p className="text-sm text-ink-2">Risk, projected grade and our recommendation for each course.</p>
+          {study.data && (
+            <p className="mt-1 text-sm font-medium">
+              Studied in the last 7 days: {hoursMinutes(study.data.last7DaysMinutes)}
+            </p>
+          )}
         </div>
         {courses?.length > 0 && <AddCourseForm onAdded={load} />}
       </div>
@@ -67,7 +75,7 @@ export default function DashboardPage() {
       <ul className="grid gap-4 sm:grid-cols-2">
         {courses?.map((c) => (
           <li key={c.id}>
-            <CourseCard course={c} />
+            <CourseCard course={c} studiedMinutes={minutesByCourse[c.id]} />
           </li>
         ))}
       </ul>
@@ -75,7 +83,7 @@ export default function DashboardPage() {
   )
 }
 
-function CourseCard({ course }) {
+function CourseCard({ course, studiedMinutes }) {
   const rec = course.recommendation
   return (
     <Link
@@ -92,6 +100,9 @@ function CourseCard({ course }) {
       <div className="mt-4">
         <GradeMeter projection={course.projection} compact />
       </div>
+      {studiedMinutes != null && (
+        <p className="mt-2 text-xs text-ink-2">Studied this week: {hoursMinutes(studiedMinutes)}</p>
+      )}
       <div className="mt-4 border-t border-line pt-3">
         {course.loadError ? (
           <p className="text-sm text-ink-2">Couldn't load this course's latest numbers. Open it to try again.</p>

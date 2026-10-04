@@ -31,7 +31,7 @@ function toForm(checkIn) {
 }
 
 /** Weekly check-in: the study-habit inputs the risk model needs. Prefilled from the last check-in. */
-export default function CheckInForm({ courseId, onSubmit, busy, error }) {
+export default function CheckInForm({ courseId, onSubmit, busy, error, studySummary }) {
   const [values, setValues] = useState(EMPTY)
   const [lastDate, setLastDate] = useState(null)
   const [localError, setLocalError] = useState(null)
@@ -79,6 +79,26 @@ export default function CheckInForm({ courseId, onSubmit, busy, error }) {
         {lastDate && ` Filled in from your last check-in on ${new Date(lastDate).toLocaleDateString()}.`}
         {prefillError && " Your last answers couldn't be loaded, so the form starts empty."}
       </p>
+      {studySummary?.totalSessions > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-accent-soft px-3 py-2 text-sm">
+          <span className="flex-1">
+            Your study log: {studySummary.avgWeeklyHours} h/week recently, {studySummary.totalSessions} sessions.
+          </span>
+          <button
+            type="button"
+            className="font-semibold text-accent-strong underline"
+            onClick={() =>
+              setValues((v) => ({
+                ...v,
+                avgWeeklyStudyHours: String(studySummary.avgWeeklyHours),
+                studySessionsLogged: String(studySummary.totalSessions),
+              }))
+            }
+          >
+            Use these numbers
+          </button>
+        </div>
+      )}
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         {FIELDS.map((f) => (
           <Field key={f.key} label={`${f.label}${f.unit ? ` (${f.unit})` : ''}`} hint={f.hint}>

@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { courseApi } from '../api/client'
+import { courseApi, sessionApi } from '../api/client'
+import StudyLog from '../components/StudyLog'
+import { localDate } from '../lib/format'
+import useAsync from '../lib/useAsync'
 import AddItemForm from '../components/AddItemForm'
 import CheckInForm from '../components/CheckInForm'
 import { ErrorBanner, Loading } from '../components/Field'
@@ -21,6 +24,7 @@ export default function CourseDetailPage() {
   const [predicting, setPredicting] = useState(false)
   const [predictError, setPredictError] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
+  const studyLog = useAsync(() => sessionApi.courseLog(courseId, localDate()), [courseId])
 
   const refreshProjection = useCallback(
     () =>
@@ -188,7 +192,21 @@ export default function CourseDetailPage() {
         <RecommendationCard rec={recommendation} stale={stale} onRefresh={refreshRecommendation} refreshing={refreshing} />
       )}
 
-      <CheckInForm courseId={courseId} onSubmit={predict} busy={predicting} error={predictError} />
+      <StudyLog
+        courseId={courseId}
+        log={studyLog.data}
+        loading={studyLog.loading}
+        error={studyLog.error}
+        onReload={studyLog.reload}
+      />
+
+      <CheckInForm
+        courseId={courseId}
+        onSubmit={predict}
+        busy={predicting}
+        error={predictError}
+        studySummary={studyLog.data?.summary}
+      />
     </div>
   )
 }
