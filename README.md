@@ -207,3 +207,29 @@ Backend environment variables:
 
 Tables are created automatically on first start (`spring.jpa.hibernate.ddl-auto=update`).
 
+
+## AI usage
+
+### In the product
+
+- **Prediction:** the at-risk prediction is a scikit-learn decision tree trained in
+  `notebooks/02_train_evaluate.ipynb`. No LLM is involved in the prediction itself.
+- **Google Gemini** (`GEMINI_MODEL`) does the following:
+  - extracts graded items from syllabus text
+  - generates flashcards, practice questions and the study plan
+  - rewrites the recommendation reasoning in plain language
+  - writes the script for the spoken course briefing
+
+  Gemini output is checked before it's used: rewrites that add numbers or change the shape of the
+  response fall back to template text. Everything Gemini writes is labeled "AI-generated".
+- **ElevenLabs** reads the course briefing aloud ("Listen to your briefing" on a course page).
+  The app always appends "This is guidance, not a verdict" to the script.
+- **Privacy:** only course names and aggregate grade and risk figures are sent to Gemini and
+  ElevenLabs. No email or other personal data is sent.
+
+### In development
+
+We used Anthropic's Claude Code as a coding assistant throughout the hackathon. It helped write and
+refactor some of the code across the backend, frontend, write tests, debug, and draft some of the
+documentation. The team set the product idea, requirements, model rules and design direction, and
+reviewed, ran and tested the changes. All data is synthetic.
