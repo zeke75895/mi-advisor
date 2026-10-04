@@ -2,17 +2,23 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { courseApi } from '../api/client'
 import AddCourseForm from '../components/AddCourseForm'
-import { ErrorBanner } from '../components/Field'
+import { ErrorBanner, Loading } from '../components/Field'
 import GradeMeter from '../components/GradeMeter'
+import RaiPanel from '../components/RaiPanel'
 import StatusBadge, { RiskBadge } from '../components/StatusBadge'
 import { RECOMMENDATION_TONE, riskLevel } from '../lib/format'
 
 async function loadCourse(course) {
-  const [projection, recommendation] = await Promise.all([
-    courseApi.projection(course.id).catch(() => null),
-    courseApi.recommendation(course.id).catch(() => null),
+  const [projection, recommendation] = await Promise.allSettled([
+    courseApi.projection(course.id),
+    courseApi.recommendation(course.id),
   ])
-  return { ...course, projection, recommendation }
+  return {
+    ...course,
+    projection: projection.value ?? null,
+    recommendation: recommendation.value ?? null,
+    loadError: projection.status === 'rejected' || recommendation.status === 'rejected',
+  }
 }
 
 export default function DashboardPage() {
@@ -44,9 +50,9 @@ export default function DashboardPage() {
         {courses?.length > 0 && <AddCourseForm onAdded={load} />}
       </div>
 
-      <ErrorBanner error={error} />
+      <ErrorBanner error={error} onRetry={load} />
 
-      {courses === null && <p className="text-ink-2">Loading…</p>}
+      {courses === null && <Loading label="Loading your courses…" />}
 
       {courses?.length === 0 && !error && (
         <div className="rounded-xl border border-dashed border-line bg-surface p-6 text-center">
@@ -87,9 +93,12 @@ function CourseCard({ course }) {
         <GradeMeter projection={course.projection} compact />
       </div>
       <div className="mt-4 border-t border-line pt-3">
-        {rec ? (
-          <div className="flex items-start gap-2">
+        {course.loadError ? (
+          <p className="text-sm text-ink-2">Couldn't load this course's latest numbers. Open it to try again.</p>
+        ) : rec ? (
+          <div className="space-y-2">
             <StatusBadge tone={RECOMMENDATION_TONE[rec.recommendation]}>{rec.headline}</StatusBadge>
+            <RaiPanel compact />
           </div>
         ) : (
           <p className="text-sm text-ink-2">No risk check yet. Open the course to run one.</p>

@@ -102,4 +102,8 @@ export const studyApi = {
   latestPlan: () => api('/api/study-plan/latest'),
 }
 
+export const modelApi = {
+  info: () => api('/api/model-info'),
+}
+
 export const hasToken = () => Boolean(readToken())

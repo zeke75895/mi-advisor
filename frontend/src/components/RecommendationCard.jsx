@@ -1,4 +1,5 @@
 import { RECOMMENDATION_TONE } from '../lib/format'
+import RaiPanel from './RaiPanel'
 import StatusBadge from './StatusBadge'
 
 const BORDER = {
@@ -54,7 +55,9 @@ export default function RecommendationCard({ rec, stale, onRefresh, refreshing }
       {rec.advisorNote && (
         <p className="mt-4 rounded-md border border-line bg-page px-3 py-2 text-sm font-semibold">{rec.advisorNote}</p>
       )}
-      <p className="mt-4 border-t border-line pt-3 text-xs text-ink-2">{rec.disclaimer}</p>
+      <div className="mt-4">
+        <RaiPanel />
+      </div>
     </section>
   )
 }

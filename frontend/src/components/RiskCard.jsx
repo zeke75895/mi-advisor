@@ -1,4 +1,5 @@
 import { FEATURE_LABELS, riskLevel } from '../lib/format'
+import RaiPanel from './RaiPanel'
 import { RiskBadge } from './StatusBadge'
 
 /** Result of POST /predict: level only (the probability isn't calibrated), plus the plain-language "why". */
@@ -29,7 +30,9 @@ export default function RiskCard({ result }) {
           typical value was used.
         </p>
       )}
-      <p className="mt-3 border-t border-line pt-3 text-xs text-ink-2">{result.disclaimer}</p>
+      <div className="mt-4">
+        <RaiPanel />
+      </div>
     </section>
   )
 }
