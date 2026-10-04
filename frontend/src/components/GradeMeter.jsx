@@ -40,6 +40,7 @@ export default function GradeMeter({ projection, compact = false }) {
         </span>
         <span className="absolute right-0">100</span>
       </div>
+      {!compact && <NeededForC projection={projection} />}
       {!compact && (
         <p className="mt-2 text-sm text-ink-2">
           {projection.currentGrade != null
@@ -49,5 +50,22 @@ export default function GradeMeter({ projection, compact = false }) {
         </p>
       )}
     </div>
+  )
+}
+
+/** The average needed on everything still ahead to finish with a C, from actual grades only. */
+function NeededForC({ projection }) {
+  const r = projection.requiredScore
+  const left = Math.round(projection.remainingWeight * 100)
+  let text
+  if (r == null) text = 'All graded work is in.'
+  else if (r <= 0) text = 'You’ve already earned enough points for a C.'
+  else if (r > 100) text = `A C is no longer reachable: the best possible final grade is ${Math.floor(projection.maxPossible)}.`
+  else text = `To finish with a C, you need an average of ${Math.ceil(r)}% on the remaining ${left}%.`
+  const steep = r != null && r > 85
+  return (
+    <p className={`mt-3 rounded-md px-3 py-2 text-sm font-medium ${steep ? 'bg-critical/5 text-ink' : 'bg-accent-soft text-ink'}`}>
+      {text}
+    </p>
   )
 }
