@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router'
 import { useAuth } from './auth/AuthContext'
 import Layout from './components/Layout'
+import { ModelInfoProvider } from './lib/ModelInfoContext'
+import InsightsPage from './pages/InsightsPage'
 import CourseDetailPage from './pages/CourseDetailPage'
 import DashboardPage from './pages/DashboardPage'
 import FlashcardsPage from './pages/FlashcardsPage'
@@ -23,7 +25,9 @@ function App() {
       <Route
         element={
           <RequireAuth>
-            <Layout />
+            <ModelInfoProvider>
+              <Layout />
+            </ModelInfoProvider>
           </RequireAuth>
         }
       >
@@ -32,6 +36,7 @@ function App() {
         <Route path="courses/:courseId/flashcards" element={<FlashcardsPage />} />
         <Route path="courses/:courseId/quiz" element={<QuizPage />} />
         <Route path="study-plan" element={<StudyPlanPage />} />
+        <Route path="insights" element={<InsightsPage />} />
         <Route path="upload" element={<UploadPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

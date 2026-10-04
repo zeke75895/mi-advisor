@@ -1,8 +1,9 @@
 import { Link, NavLink, Outlet } from 'react-router'
 import { useAuth } from '../auth/AuthContext'
+import AppErrorBoundary from './AppErrorBoundary'
 
 const navClass = ({ isActive }) =>
-  `rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-accent-soft text-accent-strong' : 'text-ink-2 hover:bg-line/50'}`
+  `shrink-0 whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-medium sm:px-3 ${isActive ? 'bg-accent-soft text-accent-strong' : 'text-ink-2 hover:bg-line/50'}`
 
 export default function Layout() {
   const { email, logout } = useAuth()
@@ -10,10 +11,17 @@ export default function Layout() {
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-3">
-          <Link to="/" className="text-lg font-bold tracking-tight">
-            Course<span className="text-accent">Compass</span>
-          </Link>
-          <nav className="flex items-center gap-1">
+          <div className="flex w-full items-center justify-between sm:w-auto">
+            <Link to="/" className="text-lg font-bold tracking-tight">
+              Course<span className="text-accent">Compass</span>
+            </Link>
+            {/* On phones, Log out sits next to the logo so it never scrolls out of view with the links */}
+            <button onClick={logout} className="rounded-md px-2.5 py-2 text-sm font-medium text-ink-2 hover:bg-line/50 sm:hidden">
+              Log out
+            </button>
+          </div>
+          {/* On narrow phones the links scroll sideways inside the bar instead of widening the page */}
+          <nav className="-mx-1 flex w-full items-center gap-1 overflow-x-auto px-1 sm:mx-0 sm:w-auto sm:px-0">
             <NavLink to="/" end className={navClass}>
               Dashboard
             </NavLink>
@@ -23,17 +31,22 @@ export default function Layout() {
             <NavLink to="/upload" className={navClass}>
               Upload
             </NavLink>
-            <span className="hidden px-2 text-sm text-muted sm:inline" title={email ?? ''}>
+            <NavLink to="/insights" className={navClass}>
+              Insights
+            </NavLink>
+            <span className="hidden max-w-40 truncate px-2 text-sm text-muted lg:inline" title={email ?? ''}>
               {email}
             </span>
-            <button onClick={logout} className="rounded-md px-3 py-2 text-sm font-medium text-ink-2 hover:bg-line/50">
+            <button onClick={logout} className="hidden shrink-0 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-ink-2 hover:bg-line/50 sm:inline-flex">
               Log out
             </button>
           </nav>
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
-        <Outlet />
+        <AppErrorBoundary>
+          <Outlet />
+        </AppErrorBoundary>
       </main>
       <DisclaimerFooter />
     </div>
