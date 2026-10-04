@@ -55,7 +55,8 @@ midterm."**
 
 **"Right after each exam, Jordan rates how confident they feel. Watch the projected grade: it
 combines actual scores with those ratings, weighted by the syllabus. It just dropped from 63 to
-55, which is below a C."**
+55, which is below a C. And underneath, from Jordan's real grades: to finish with a C they'd need
+an average of 92% on the 25% of the grade that's left."**
 
 **"The weekly check-in (attendance, on-time submissions, late-night studying) is already filled in
 from last week."** *Scroll to it and click **Predict risk**.*
@@ -70,8 +71,9 @@ Jordan. It isn't a generic explanation."**
 
 *Point at the recommendation card.*
 
-**"Now the fusion. The model's risk, a projected grade of 55, only 25% of the grade still ahead,
-and three low-confidence ratings add up to a strong signal to consider withdrawing. Gemini
+**"Now the fusion. The model's risk, a projected grade of 55, needing 92% on the final quarter of
+the grade (a steep climb from the 63% Jordan has averaged so far), and three low-confidence ratings
+add up to a strong signal to consider withdrawing. Every reason agrees with the headline. Gemini
 rewrites the reasons in supportive language, and it's labeled AI-generated."**
 
 *Point at the **Responsible AI** panel.*
@@ -116,7 +118,7 @@ the deadline, plus flashcards, a quiz and a 7-day study plan if you stay."**
 | Overfitting | Train 86.1% vs test 79.4% accuracy (gap 6.7 points); cross-validated recall ≈ 0.81 |
 | Top features | Midterm 59% · on-time submissions 22% · attendance 11% · late-night studying 8% |
 | Biggest at-risk path | Midterm ≤ 64.5, on-time ≤ 79.5%, attendance ≤ 94.5%: 110 of 139 training students were at risk |
-| Demo course (CH 101) | Projected 63 → 55 after rating; 25% of grade remaining; strong withdraw signal |
+| Demo course (CH 101) | Projected 63 → 55 after rating; needs 92% on the remaining 25% for a C (63% average so far); strong withdraw signal |
 
 ## If something goes wrong
 
@@ -140,6 +142,9 @@ the deadline, plus flashcards, a quiz and a 7-day study plan if you stay."**
 - **Why don't sleep or study hours matter?** The tree never splits on them, because midterm,
   on-time submissions and attendance already carry that signal. We say so on the Insights page, and
   the app labels tips about those habits as general advice, not reasons for a flag.
+- **How do you decide whether recovery is realistic?** From actual grades, not ratings: the average
+  needed on everything left to finish at 70. Above 85% counts as a steep climb; above 100% means a C
+  is out of reach, and the app never recommends staying in that case.
 - **Is the probability a real percentage?** No. The tree's leaf probabilities aren't calibrated, so
   the UI only shows high, moderate or low.
 - **Privacy?** Only aggregate signals go to Gemini (no names or emails), and data is never shared.

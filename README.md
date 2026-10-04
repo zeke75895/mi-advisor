@@ -88,7 +88,10 @@ question needs 4 distinct options and a valid answer index, and plans are pinned
 the requested 7 dates and the daily time limit.
 
 The projected final is the weighted average of each item's actual % (graded) or
-self-rating × 10 (ungraded), using the syllabus weights. If `GEMINI_API_KEY` is set,
+self-rating × 10 (ungraded), using the syllabus weights. The recommendation also uses the
+score needed to pass: the average required on all remaining work to finish with a C,
+computed from actual grades (over 85% is a steep climb; over 100% means a C is out of
+reach). The reasons are worded to match the final recommendation. If `GEMINI_API_KEY` is set,
 the reasoning bullets are rewritten by Gemini (prompts in
 `backend/src/main/resources/prompts/`) and labeled "AI-generated". The rewrite is
 rejected, and the template text used instead, if it changes the number of bullets or
