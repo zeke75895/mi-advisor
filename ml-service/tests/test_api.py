@@ -60,3 +60,6 @@ def test_model_info_returns_metrics() -> None:
         body = client.get("/model-info").json()
     assert body["metrics"]["recall_at_risk"] > body["baseline_metrics"]["recall_at_risk"]
     assert body["hyperparameters"]["max_depth"] == 3
+    assert body["metrics"]["confusion_matrix"] == {"tn": 93, "fp": 23, "fn": 10, "tp": 34}
+    assert len(body["leaves"]) == 8
+    assert sum(leaf["train_students"] for leaf in body["leaves"]) == body["n_train"]

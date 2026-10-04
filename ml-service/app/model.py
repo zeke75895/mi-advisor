@@ -139,6 +139,7 @@ class RiskModel:
             "feature_importances",
             "n_train",
             "n_test",
+            "leaves",
         )
         info = {k: self.config[k] for k in keys if k in self.config}
         return json.loads(
