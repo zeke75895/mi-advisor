@@ -132,6 +132,184 @@
     "late_night_study_pct": 0.0816
   },
   "tree_rules": "|--- midterm_score <= 64.50\n|   |--- on_time_submission_rate <= 0.80\n|   |   |--- attendance_rate <= 0.94\n|   |   |   |--- class: 1\n|   |   |--- attendance_rate >  0.94\n|   |   |   |--- class: 0\n|   |--- on_time_submission_rate >  0.80\n|   |   |--- late_night_study_pct <= 0.37\n|   |   |   |--- class: 0\n|   |   |--- late_night_study_pct >  0.37\n|   |   |   |--- class: 1\n|--- midterm_score >  64.50\n|   |--- attendance_rate <= 0.78\n|   |   |--- on_time_submission_rate <= 0.89\n|   |   |   |--- class: 1\n|   |   |--- on_time_submission_rate >  0.89\n|   |   |   |--- class: 0\n|   |--- attendance_rate >  0.78\n|   |   |--- on_time_submission_rate <= 0.72\n|   |   |   |--- class: 1\n|   |   |--- on_time_submission_rate >  0.72\n|   |   |   |--- class: 0\n",
+  "leaves": [
+    {
+      "conditions": [
+        {
+          "feature": "midterm_score",
+          "op": "<=",
+          "threshold": 64.5
+        },
+        {
+          "feature": "on_time_submission_rate",
+          "op": "<=",
+          "threshold": 0.795
+        },
+        {
+          "feature": "attendance_rate",
+          "op": "<=",
+          "threshold": 0.945
+        }
+      ],
+      "flagged": true,
+      "train_students": 139,
+      "train_at_risk": 110
+    },
+    {
+      "conditions": [
+        {
+          "feature": "midterm_score",
+          "op": "<=",
+          "threshold": 64.5
+        },
+        {
+          "feature": "on_time_submission_rate",
+          "op": "<=",
+          "threshold": 0.795
+        },
+        {
+          "feature": "attendance_rate",
+          "op": ">",
+          "threshold": 0.945
+        }
+      ],
+      "flagged": false,
+      "train_students": 6,
+      "train_at_risk": 1
+    },
+    {
+      "conditions": [
+        {
+          "feature": "midterm_score",
+          "op": "<=",
+          "threshold": 64.5
+        },
+        {
+          "feature": "on_time_submission_rate",
+          "op": ">",
+          "threshold": 0.795
+        },
+        {
+          "feature": "late_night_study_pct",
+          "op": "<=",
+          "threshold": 0.365
+        }
+      ],
+      "flagged": false,
+      "train_students": 107,
+      "train_at_risk": 19
+    },
+    {
+      "conditions": [
+        {
+          "feature": "midterm_score",
+          "op": "<=",
+          "threshold": 64.5
+        },
+        {
+          "feature": "on_time_submission_rate",
+          "op": ">",
+          "threshold": 0.795
+        },
+        {
+          "feature": "late_night_study_pct",
+          "op": ">",
+          "threshold": 0.365
+        }
+      ],
+      "flagged": true,
+      "train_students": 33,
+      "train_at_risk": 22
+    },
+    {
+      "conditions": [
+        {
+          "feature": "midterm_score",
+          "op": ">",
+          "threshold": 64.5
+        },
+        {
+          "feature": "attendance_rate",
+          "op": "<=",
+          "threshold": 0.785
+        },
+        {
+          "feature": "on_time_submission_rate",
+          "op": "<=",
+          "threshold": 0.89
+        }
+      ],
+      "flagged": true,
+      "train_students": 28,
+      "train_at_risk": 13
+    },
+    {
+      "conditions": [
+        {
+          "feature": "midterm_score",
+          "op": ">",
+          "threshold": 64.5
+        },
+        {
+          "feature": "attendance_rate",
+          "op": "<=",
+          "threshold": 0.785
+        },
+        {
+          "feature": "on_time_submission_rate",
+          "op": ">",
+          "threshold": 0.89
+        }
+      ],
+      "flagged": false,
+      "train_students": 7,
+      "train_at_risk": 0
+    },
+    {
+      "conditions": [
+        {
+          "feature": "midterm_score",
+          "op": ">",
+          "threshold": 64.5
+        },
+        {
+          "feature": "attendance_rate",
+          "op": ">",
+          "threshold": 0.785
+        },
+        {
+          "feature": "on_time_submission_rate",
+          "op": "<=",
+          "threshold": 0.715
+        }
+      ],
+      "flagged": true,
+      "train_students": 11,
+      "train_at_risk": 5
+    },
+    {
+      "conditions": [
+        {
+          "feature": "midterm_score",
+          "op": ">",
+          "threshold": 64.5
+        },
+        {
+          "feature": "attendance_rate",
+          "op": ">",
+          "threshold": 0.785
+        },
+        {
+          "feature": "on_time_submission_rate",
+          "op": ">",
+          "threshold": 0.715
+        }
+      ],
+      "flagged": false,
+      "train_students": 309,
+      "train_at_risk": 8
+    }
+  ],
   "n_train": 640,
   "n_test": 160,
   "trained_on": "WolfHacks 2026 synthetic student outcomes"
