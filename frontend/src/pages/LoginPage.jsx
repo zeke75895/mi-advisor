@@ -49,7 +49,7 @@ export default function LoginPage() {
       <main className="flex flex-1 items-center justify-center px-4 py-10">
         <div className="w-full max-w-sm">
           <h1 className="text-center text-3xl font-bold tracking-tight">
-            Course<span className="text-accent">Compass</span>
+            Mi<span className="text-accent">Advisor</span>
           </h1>
           <p className="mt-2 text-center text-sm text-ink-2">
             See where each course is heading, and get a plan before it's too late.

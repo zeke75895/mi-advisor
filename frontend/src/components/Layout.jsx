@@ -13,7 +13,7 @@ export default function Layout() {
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-3">
           <div className="flex w-full items-center justify-between sm:w-auto">
             <Link to="/" className="text-lg font-bold tracking-tight">
-              Course<span className="text-accent">Compass</span>
+              Mi<span className="text-accent">Advisor</span>
             </Link>
             {/* On phones, Log out sits next to the logo so it never scrolls out of view with the links */}
             <button onClick={logout} className="rounded-md px-2.5 py-2 text-sm font-medium text-ink-2 hover:bg-line/50 sm:hidden">
