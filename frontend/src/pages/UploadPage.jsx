@@ -3,6 +3,7 @@ import useAsync from '../lib/useAsync'
 import { Link, useSearchParams } from 'react-router'
 import { courseApi } from '../api/client'
 import { Button, ErrorBanner, Loading, inputClass } from '../components/Field'
+import SyllabusItemsReview from '../components/SyllabusItemsReview'
 
 const MAX_BYTES = 10 * 1024 * 1024
 
@@ -125,8 +126,7 @@ export default function UploadPage() {
             <p className="font-semibold">✓ Saved {result.length.toLocaleString()} characters from {result.fileName}</p>
             <p className="mt-1 text-sm text-ink-2">
               These are now this course's notes.
-              {result.truncatedForAi && ' The study tools read the first 20,000 characters.'} Pulling deadlines and
-              grade weights out of a syllabus isn't automatic yet, so add graded items on the course page.
+              {result.truncatedForAi && ' The study tools read the first 20,000 characters.'}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -146,6 +146,8 @@ export default function UploadPage() {
           </details>
         </div>
       )}
+
+      {result && <SyllabusItemsReview key={`${courseId}-${result.updatedAt}`} courseId={courseId} />}
     </div>
   )
 }
