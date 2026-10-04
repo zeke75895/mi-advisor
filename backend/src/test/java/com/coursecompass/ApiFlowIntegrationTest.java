@@ -126,6 +126,21 @@ class ApiFlowIntegrationTest {
     }
 
     @Test
+    void modelInfoIsPassedThroughAndCached() throws Exception {
+        when(mlClient.modelInfo()).thenReturn(json.readTree(
+                "{\"model_version\": \"tree_v1\", \"metrics\": {\"recall_at_risk\": 0.7727}}"));
+        String token = register(uniqueEmail());
+
+        for (int i = 0; i < 2; i++) {
+            mvc.perform(get("/api/model-info").header("Authorization", bearer(token)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.metrics.recall_at_risk").value(0.7727));
+        }
+        verify(mlClient, org.mockito.Mockito.atMost(1)).modelInfo();
+        mvc.perform(get("/api/model-info")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void requestsWithoutTokenAreRejected() throws Exception {
         mvc.perform(get("/api/courses")).andExpect(status().isUnauthorized());
     }

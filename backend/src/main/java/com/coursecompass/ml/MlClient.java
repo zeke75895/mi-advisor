@@ -1,6 +1,7 @@
 package com.coursecompass.ml;
 
 import com.coursecompass.ml.MlDtos.MlPredictRequest;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.coursecompass.ml.MlDtos.MlPredictResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -22,6 +23,21 @@ public class MlClient {
         requestFactory.setConnectTimeout(Duration.ofSeconds(5));
         requestFactory.setReadTimeout(Duration.ofSeconds(15));
         this.restClient = builder.baseUrl(baseUrl).requestFactory(requestFactory).build();
+    }
+
+    /** GET /model-info: test-set metrics, baseline, importances and tree leaves. */
+    public JsonNode modelInfo() {
+        try {
+            return restClient.get()
+                    .uri("/model-info")
+                    .retrieve()
+                    .onStatus(status -> status.isError(), (req, res) -> {
+                        throw new MlServiceException(HttpStatus.BAD_GATEWAY, "ML service error");
+                    })
+                    .body(JsonNode.class);
+        } catch (ResourceAccessException e) {
+            throw new MlServiceException(HttpStatus.SERVICE_UNAVAILABLE, "ML service is unavailable");
+        }
     }
 
     public MlPredictResponse predict(MlPredictRequest request) {
