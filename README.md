@@ -8,6 +8,10 @@ recommendation → study plan + flashcards.
 > All data is synthetic. Risk outputs are guidance, not a verdict. Talk to your
 > advisor before withdrawing from a course.
 
+MiAdvisor runs locally: there is no hosted version. The whole stack (Postgres in Docker,
+the ML service, the API and the frontend) runs on your machine; see
+[Running it locally](#running-it-locally).
+
 ## The model at a glance
 
 Decision tree (depth 3) trained on the WolfHacks synthetic dataset (800 students, 28% at risk),
@@ -27,23 +31,38 @@ The app's Model Insights page shows the same numbers live.
 
 ## Repo layout
 
-| Path          | Stack                               | Deploy  |
-|---------------|-------------------------------------|---------|
-| `frontend/`   | React + Vite + Tailwind             | Vercel  |
-| `backend/`    | Spring Boot 3, Java 17, Maven, JPA  | Railway |
-| `ml-service/` | FastAPI + scikit-learn              | Railway |
-| `notebooks/`  | Jupyter training + evaluation       | —       |
-| `data/`       | WolfHacks synthetic dataset (xlsx)  | —       |
+| Path          | Stack                               | Runs on                 |
+|---------------|-------------------------------------|-------------------------|
+| `frontend/`   | React + Vite + Tailwind             | http://localhost:5173   |
+| `backend/`    | Spring Boot 3, Java 17, Maven, JPA  | http://localhost:8080   |
+| `ml-service/` | FastAPI + scikit-learn              | http://localhost:8000   |
+| Postgres      | Postgres 16 (docker-compose)        | localhost:5432          |
+| `notebooks/`  | Jupyter training + evaluation       | —                       |
+| `data/`       | WolfHacks synthetic dataset (xlsx)  | —                       |
 
 ## Prerequisites
 
 Node 20+, Java 17+, Maven 3.9+, Python 3.11+, Docker.
 
-## Local development
+## Running it locally
 
 ```bash
-cp .env.example .env
+cp .env.example .env   # then add GEMINI_API_KEY and ELEVENLABS_API_KEY
 ```
+
+Quick start, one terminal per service, from the repo root:
+
+```bash
+docker compose up -d                                              # 1. Postgres
+cd ml-service && .venv/bin/uvicorn app.main:app --port 8000       # 2. ML service
+cd backend && set -a && source ../.env && set +a && mvn spring-boot:run   # 3. API
+cd frontend && npm run dev                                        # 4. Frontend
+python3 scripts/seed_demo.py                                      # 5. Demo account (prints the login)
+```
+
+Then open http://localhost:5173. Stop the services with Ctrl+C and the database with
+`docker compose stop` (your data is kept). Each step is explained below; first-time setup
+of the Python environments and `npm install` is covered in steps 3 and 4.
 
 ### 1. Postgres
 
@@ -57,14 +76,15 @@ Runs Postgres 16 on `localhost:5432` (db/user/password: `coursecompass`).
 
 ```bash
 cd backend
+set -a; source ../.env; set +a   # loads the API keys and database settings
 mvn spring-boot:run
 curl localhost:8080/health   # {"status":"ok"}
 ```
 
 Needs Postgres running. Connection settings come from `DATABASE_URL`,
 `DATABASE_USERNAME`, `DATABASE_PASSWORD` and default to the docker-compose values.
-Set `JWT_SECRET` (32+ bytes) in any deployed environment. Locally, a random key is
-generated if it's unset, so tokens stop working after a restart.
+If `JWT_SECRET` (32+ bytes) is unset, a random key is generated at startup, so you'll
+need to log in again after restarting the backend. Set it in `.env` to keep logins.
 
 All `/api/**` routes except auth need `Authorization: Bearer <token>`. Errors are
 returned as RFC 7807 problem JSON (validation errors include an `errors` map).
@@ -158,8 +178,10 @@ grade meter, weekly check-in → risk check, recommendation card), flashcards (f
 cards) and practice quiz per course, a 7-day study plan, and PDF upload (text is extracted into the course notes;
 deadlines and weights are still entered by hand). Everything Gemini writes is labeled "AI-generated". A Model Insights page shows
 the confusion matrix, feature importances and the tree's rules in plain English, and every
-risk and recommendation card carries a Responsible AI panel with the model's live recall. Set `VITE_API_BASE_URL` to point at the backend.
-`vercel.json` rewrites all routes to `index.html` for client-side routing.
+risk and recommendation card carries a Responsible AI panel with the model's live recall.
+Course pages also have a "Listen to your briefing" button (Gemini script, ElevenLabs voice),
+shown when `ELEVENLABS_API_KEY` is set. The frontend talks to `http://localhost:8080` by
+default; set `VITE_API_BASE_URL` to change it.
 
 ### 5. Train the model
 
@@ -186,27 +208,14 @@ Run in order:
 - Seed a demo account: `python scripts/seed_demo.py` (prints the login; all data is synthetic)
 - Sample syllabus to upload: [`docs/demo/ch101-syllabus.pdf`](docs/demo/ch101-syllabus.pdf)
 
-## Deploying
+## Deploying (optional)
 
-| Service | Where | Setup |
-|---|---|---|
-| Postgres | Tiger Data or Railway Postgres | Create a database and copy its host, port, name, user and password |
-| ML service | Railway, from `ml-service/Dockerfile` | No env vars needed; Railway sets `PORT` |
-| Backend | Railway, from `backend/Dockerfile` | Env vars below |
-| Frontend | Vercel, root directory `frontend` | `VITE_API_BASE_URL=https://<backend-url>` |
-
-Backend environment variables:
-
-- `DATABASE_URL` must be a **JDBC** URL: `jdbc:postgresql://<host>:<port>/<db>?sslmode=require`.
-  Providers usually show `postgres://user:pass@host:port/db`; convert it and put the user and
-  password in `DATABASE_USERNAME` and `DATABASE_PASSWORD`.
-- `JWT_SECRET`: required (`openssl rand -base64 48`). Without it, logins reset on every restart.
-- `ML_SERVICE_URL`: the ML service's Railway URL.
-- `CORS_ALLOWED_ORIGINS`: your Vercel URL, e.g. `https://miadvisor.vercel.app`.
-- `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, `AI_USER_LIMIT`).
-
-Tables are created automatically on first start (`spring.jpa.hibernate.ddl-auto=update`).
-
+For the hackathon we run MiAdvisor locally only. If you want to host it later,
+`backend/Dockerfile` and `ml-service/Dockerfile` build the two services, and the frontend
+is a static Vite build (`frontend/vercel.json` handles client-side routes). Set the same
+variables as `.env.example` on the host, plus `JWT_SECRET`, `ML_SERVICE_URL` and
+`CORS_ALLOWED_ORIGINS`. `DATABASE_URL` must be a JDBC URL
+(`jdbc:postgresql://<host>:<port>/<db>?sslmode=require`).
 
 ## AI usage
 
