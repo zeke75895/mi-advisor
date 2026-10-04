@@ -33,7 +33,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     state.clear()
 
 
-app = FastAPI(title="CourseCompass ML Service", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="MiAdvisor ML Service", version="1.0.0", lifespan=lifespan)
 
 # Hackathon: allow every origin. Lock this down before any real deployment.
 app.add_middleware(

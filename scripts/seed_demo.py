@@ -46,7 +46,7 @@ def due(days, hour=23, minute=59):
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--api", default="http://localhost:8080")
-    p.add_argument("--email", default="demo@coursecompass.app")
+    p.add_argument("--email", default="demo@miadvisor.app")
     p.add_argument("--password", default="wolfhacks-demo-2026")
     args = p.parse_args()
     api = args.api.rstrip("/")

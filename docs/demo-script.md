@@ -1,4 +1,4 @@
-# CourseCompass: 3-minute demo script
+# MiAdvisor: 3-minute demo script
 
 For the presenters. **Bold** lines are what you say; *italics* are what you click. Times are
 targets, and the whole run fits in 3:00 with about 15 seconds of slack.
@@ -9,7 +9,7 @@ targets, and the whole run fits in 3:00 with about 15 seconds of slack.
    `.env`), and the frontend. Check `/health` on the backend and ML service.
 2. Seed a fresh demo account:
    ```bash
-   python scripts/seed_demo.py --email demo-$(date +%H%M)@coursecompass.app
+   python scripts/seed_demo.py --email demo-$(date +%H%M)@miadvisor.app
    ```
    Note the email it prints. The password is `wolfhacks-demo-2026`.
 3. Log in once, open **CH 101** and **Insights**, then go back to the dashboard. This warms the
@@ -28,7 +28,7 @@ Don't rate CH 101's items or press "Predict risk" while warming up. Those are th
 or F. Often, by the time the grade shows up, the withdrawal deadline has passed. Students have to decide whether to stay or drop with almost no
 information."**
 
-**"CourseCompass gives them that information early: a risk prediction from a decision tree, their
+**"MiAdvisor gives them that information early: a risk prediction from a decision tree, their
 own sense of how each exam went, and the syllabus weights, combined into one clear recommendation."**
 
 *Show the dashboard.* **"Here's Jordan's semester. Calculus is on track. Chemistry looks
@@ -99,7 +99,7 @@ overfitting, and it's small enough to explain to a student."**
 
 ## 2:40–3:00 · Impact
 
-**"Most tools show a dashboard or a model. CourseCompass connects them: the model says risk, you
+**"Most tools show a dashboard or a model. MiAdvisor connects them: the model says risk, you
 say the midterm felt bad, the syllabus says what's left, and we turn that into a decision before
 the deadline, plus flashcards, a quiz and a 7-day study plan if you stay."**
 

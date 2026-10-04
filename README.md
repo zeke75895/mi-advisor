@@ -1,4 +1,4 @@
-# CourseCompass
+# MiAdvisor
 
 AI student hub for WolfHacks 2026 (Institute for Advanced Analytics track).
 
@@ -138,7 +138,7 @@ curl localhost:8000/health   # {"status":"ok"}
 ```bash
 python scripts/test_predict.py            # sample prediction against a running service
 pip install -r requirements-dev.txt && pytest   # unit tests
-docker build -t coursecompass-ml . && docker run -p 8000:8000 coursecompass-ml
+docker build -t miadvisor-ml . && docker run -p 8000:8000 miadvisor-ml
 ```
 
 Loads `models/tree_v1.joblib` + `models/model_config.json` at startup. `scikit-learn`
@@ -202,7 +202,7 @@ Backend environment variables:
   password in `DATABASE_USERNAME` and `DATABASE_PASSWORD`.
 - `JWT_SECRET`: required (`openssl rand -base64 48`). Without it, logins reset on every restart.
 - `ML_SERVICE_URL`: the ML service's Railway URL.
-- `CORS_ALLOWED_ORIGINS`: your Vercel URL, e.g. `https://coursecompass.vercel.app`.
+- `CORS_ALLOWED_ORIGINS`: your Vercel URL, e.g. `https://miadvisor.vercel.app`.
 - `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, `AI_USER_LIMIT`).
 
 Tables are created automatically on first start (`spring.jpa.hibernate.ddl-auto=update`).
