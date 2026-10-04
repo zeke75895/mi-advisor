@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
+import useAsync from '../lib/useAsync'
 import { useParams } from 'react-router'
 import { studyApi } from '../api/client'
 import AiLabel from '../components/AiLabel'
-import { Button, ErrorBanner } from '../components/Field'
+import { Button, ErrorBanner, Loading } from '../components/Field'
 import NotesInput from '../components/NotesInput'
 import StudyHeader from '../components/StudyHeader'
 import useCourse from '../components/useCourse'
@@ -12,6 +13,7 @@ const LETTERS = ['A', 'B', 'C', 'D']
 export default function QuizPage() {
   const { courseId } = useParams()
   const { course, error: courseError } = useCourse(courseId)
+  const saved = useAsync(() => studyApi.latestQuestions(courseId), [courseId])
   const [quiz, setQuiz] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -20,11 +22,9 @@ export default function QuizPage() {
   const [checked, setChecked] = useState({}) // question index -> true once checked
 
   useEffect(() => {
-    studyApi
-      .latestQuestions(courseId)
-      .then((q) => q && restart(q))
-      .catch(() => {})
-  }, [courseId])
+    if (saved.data) restart(saved.data)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saved.data])
 
   function restart(next = quiz) {
     setQuiz(next)
@@ -53,6 +53,8 @@ export default function QuizPage() {
     <div className="space-y-6">
       <StudyHeader course={course} courseId={courseId} title="Practice quiz" />
       <ErrorBanner error={courseError} />
+      {saved.loading && !quiz && <Loading label="Loading your saved quiz…" />}
+      <ErrorBanner error={saved.error && `Couldn't load your saved quiz: ${saved.error}`} onRetry={saved.reload} />
       <NotesInput courseId={courseId} actionLabel={quiz ? 'Make a new quiz' : 'Make a 5-question quiz'} busy={busy} error={error} onGenerate={generate} />
 
       {quiz && (

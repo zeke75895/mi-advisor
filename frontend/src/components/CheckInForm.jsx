@@ -35,6 +35,7 @@ export default function CheckInForm({ courseId, onSubmit, busy, error }) {
   const [values, setValues] = useState(EMPTY)
   const [lastDate, setLastDate] = useState(null)
   const [localError, setLocalError] = useState(null)
+  const [prefillError, setPrefillError] = useState(false)
 
   useEffect(() => {
     courseApi
@@ -44,7 +45,7 @@ export default function CheckInForm({ courseId, onSubmit, busy, error }) {
         setValues(toForm(c))
         setLastDate(c.createdAt)
       })
-      .catch(() => {})
+      .catch(() => setPrefillError(true))
   }, [courseId])
 
   function set(key, value) {
@@ -76,6 +77,7 @@ export default function CheckInForm({ courseId, onSubmit, busy, error }) {
       <p className="mt-1 text-sm text-ink-2">
         A few honest numbers about how this course is going. They're used only for your risk check.
         {lastDate && ` Filled in from your last check-in on ${new Date(lastDate).toLocaleDateString()}.`}
+        {prefillError && " Your last answers couldn't be loaded, so the form starts empty."}
       </p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         {FIELDS.map((f) => (

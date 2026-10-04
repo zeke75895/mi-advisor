@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
+import useAsync from '../lib/useAsync'
 import { useParams } from 'react-router'
 import { studyApi } from '../api/client'
 import AiLabel from '../components/AiLabel'
-import { Button, ErrorBanner } from '../components/Field'
+import { Button, ErrorBanner, Loading } from '../components/Field'
 import NotesInput from '../components/NotesInput'
 import StudyHeader from '../components/StudyHeader'
 import useCourse from '../components/useCourse'
@@ -10,14 +11,15 @@ import useCourse from '../components/useCourse'
 export default function FlashcardsPage() {
   const { courseId } = useParams()
   const { course, error: courseError } = useCourse(courseId)
+  const saved = useAsync(() => studyApi.latestFlashcards(courseId), [courseId])
   const [set, setSet] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [flipped, setFlipped] = useState({})
 
   useEffect(() => {
-    studyApi.latestFlashcards(courseId).then(setSet).catch(() => {})
-  }, [courseId])
+    if (saved.data) setSet(saved.data)
+  }, [saved.data])
 
   async function generate() {
     setBusy(true)
@@ -46,6 +48,8 @@ export default function FlashcardsPage() {
     <div className="space-y-6">
       <StudyHeader course={course} courseId={courseId} title="Flashcards" />
       <ErrorBanner error={courseError} />
+      {saved.loading && !set && <Loading label="Loading your saved flashcards…" />}
+      <ErrorBanner error={saved.error && `Couldn't load your saved flashcards: ${saved.error}`} onRetry={saved.reload} />
       <NotesInput courseId={courseId} actionLabel={set ? 'Make new flashcards' : 'Make 10 flashcards'} busy={busy} error={error} onGenerate={generate} />
 
       {set && (

@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router'
 import { courseApi } from '../api/client'
 import AddItemForm from '../components/AddItemForm'
 import CheckInForm from '../components/CheckInForm'
-import { ErrorBanner } from '../components/Field'
+import { ErrorBanner, Loading } from '../components/Field'
 import GradeMeter from '../components/GradeMeter'
 import ItemRow from '../components/ItemRow'
 import RecommendationCard from '../components/RecommendationCard'
@@ -22,8 +22,22 @@ export default function CourseDetailPage() {
   const [predictError, setPredictError] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
 
-  const refreshProjection = useCallback(() => courseApi.projection(courseId).then(setProjection), [courseId])
-  const refreshItems = useCallback(() => courseApi.items(courseId).then(setItems), [courseId])
+  const refreshProjection = useCallback(
+    () =>
+      courseApi
+        .projection(courseId)
+        .then(setProjection)
+        .catch((e) => setError(`Couldn't update the projected grade: ${e.message}`)),
+    [courseId],
+  )
+  const refreshItems = useCallback(
+    () =>
+      courseApi
+        .items(courseId)
+        .then(setItems)
+        .catch((e) => setError(`Couldn't reload graded items: ${e.message}`)),
+    [courseId],
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -67,7 +81,7 @@ export default function CourseDetailPage() {
       setRecommendation(await courseApi.recommendation(courseId))
       setStale(false)
     } catch (e) {
-      setError(e.message)
+      setError(`Couldn't update the recommendation: ${e.message}`)
     } finally {
       setRefreshing(false)
     }
@@ -96,7 +110,7 @@ export default function CourseDetailPage() {
       </div>
     )
   }
-  if (!course) return <p className="text-ink-2">Loading…</p>
+  if (!course) return <Loading label="Loading course…" />
 
   return (
     <div className="space-y-6">
@@ -110,7 +124,7 @@ export default function CourseDetailPage() {
         </p>
         <h1 className="text-2xl font-bold">{course.courseName}</h1>
       </div>
-      <ErrorBanner error={error} />
+      <ErrorBanner error={error} onRetry={() => setError(null)} />
 
       <div className="grid gap-6 lg:grid-cols-5">
         <section className="space-y-3 lg:col-span-3">

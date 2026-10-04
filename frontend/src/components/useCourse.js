@@ -1,23 +1,12 @@
-import { useEffect, useState } from 'react'
 import { courseApi } from '../api/client'
+import useAsync from '../lib/useAsync'
 
 /** Loads one of the user's courses (there's no single-course endpoint, so filter the list). */
 export default function useCourse(courseId) {
-  const [course, setCourse] = useState(null)
-  const [error, setError] = useState(null)
-  useEffect(() => {
-    let cancelled = false
-    courseApi
-      .list()
-      .then((list) => {
-        if (cancelled) return
-        const found = list.find((c) => String(c.id) === String(courseId))
-        found ? setCourse(found) : setError('Course not found.')
-      })
-      .catch((e) => !cancelled && setError(e.message))
-    return () => {
-      cancelled = true
-    }
+  const { data, error, loading } = useAsync(async () => {
+    const found = (await courseApi.list()).find((c) => String(c.id) === String(courseId))
+    if (!found) throw new Error('Course not found.')
+    return found
   }, [courseId])
-  return { course, error }
+  return { course: data, error, loading }
 }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { courseApi, studyApi } from '../api/client'
 import AiLabel from '../components/AiLabel'
-import Field, { Button, ErrorBanner, inputClass } from '../components/Field'
+import Field, { Button, ErrorBanner, Loading, inputClass } from '../components/Field'
+import useAsync from '../lib/useAsync'
 
 function localDate() {
   const d = new Date()
@@ -9,7 +10,9 @@ function localDate() {
 }
 
 export default function StudyPlanPage() {
-  const [courses, setCourses] = useState([])
+  const courseList = useAsync(() => courseApi.list(), [])
+  const saved = useAsync(() => studyApi.latestPlan(), [])
+  const courses = courseList.data ?? []
   const [selected, setSelected] = useState({})
   const [hours, setHours] = useState(2)
   const [plan, setPlan] = useState(null)
@@ -17,15 +20,12 @@ export default function StudyPlanPage() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    courseApi
-      .list()
-      .then((list) => {
-        setCourses(list)
-        setSelected(Object.fromEntries(list.map((c) => [c.id, true])))
-      })
-      .catch((e) => setError(e.message))
-    studyApi.latestPlan().then(setPlan).catch(() => {})
-  }, [])
+    if (courseList.data) setSelected(Object.fromEntries(courseList.data.map((c) => [c.id, true])))
+  }, [courseList.data])
+
+  useEffect(() => {
+    if (saved.data) setPlan(saved.data)
+  }, [saved.data])
 
   async function generate(e) {
     e.preventDefault()
@@ -58,7 +58,11 @@ export default function StudyPlanPage() {
       <form onSubmit={generate} className="space-y-4 rounded-xl border border-line bg-surface p-5">
         <fieldset>
           <legend className="text-sm font-medium">Courses</legend>
-          {courses.length === 0 && <p className="mt-1 text-sm text-ink-2">Add a course from the dashboard first.</p>}
+          {courseList.loading && <Loading label="Loading courses…" className="mt-2" />}
+          <ErrorBanner error={courseList.error && `Couldn't load your courses: ${courseList.error}`} onRetry={courseList.reload} />
+          {!courseList.loading && !courseList.error && courses.length === 0 && (
+            <p className="mt-1 text-sm text-ink-2">Add a course from the dashboard first.</p>
+          )}
           <div className="mt-2 flex flex-wrap gap-2">
             {courses.map((c) => (
               <label key={c.id} className="flex items-center gap-2 rounded-md border border-line px-3 py-1.5 text-sm">
@@ -88,6 +92,9 @@ export default function StudyPlanPage() {
           {busy ? 'Planning your week…' : plan ? 'Make a new plan' : 'Make my plan'}
         </Button>
       </form>
+
+      {saved.loading && !plan && <Loading label="Loading your saved plan…" />}
+      <ErrorBanner error={saved.error && `Couldn't load your saved plan: ${saved.error}`} onRetry={saved.reload} />
 
       {plan && (
         <section className="space-y-4">

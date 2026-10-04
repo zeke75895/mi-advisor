@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import useAsync from '../lib/useAsync'
 import { Link, useSearchParams } from 'react-router'
 import { courseApi } from '../api/client'
-import { Button, ErrorBanner, inputClass } from '../components/Field'
+import { Button, ErrorBanner, Loading, inputClass } from '../components/Field'
 
 const MAX_BYTES = 10 * 1024 * 1024
 
 export default function UploadPage() {
   const [params] = useSearchParams()
-  const [courses, setCourses] = useState([])
+  const courseList = useAsync(() => courseApi.list(), [])
+  const courses = courseList.data ?? []
   const [courseId, setCourseId] = useState(params.get('course') ?? '')
   const [file, setFile] = useState(null)
   const [dragging, setDragging] = useState(false)
@@ -15,10 +17,6 @@ export default function UploadPage() {
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState(null)
   const input = useRef(null)
-
-  useEffect(() => {
-    courseApi.list().then(setCourses).catch(() => setCourses([]))
-  }, [])
 
   function pick(f) {
     setResult(null)
@@ -57,6 +55,13 @@ export default function UploadPage() {
         </p>
       </div>
 
+      {courseList.loading && <Loading label="Loading your courses…" />}
+      <ErrorBanner error={courseList.error && `Couldn't load your courses: ${courseList.error}`} onRetry={courseList.reload} />
+      {!courseList.loading && !courseList.error && courses.length === 0 && (
+        <p className="text-sm text-ink-2">
+          Add a course on the <Link to="/" className="font-semibold text-accent-strong underline">dashboard</Link> first.
+        </p>
+      )}
       <label className="block text-sm font-medium">
         Course
         <select
